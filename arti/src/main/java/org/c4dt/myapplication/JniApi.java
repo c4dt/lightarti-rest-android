@@ -14,5 +14,5 @@ public class JniApi {
         }
     }
 
-    public static native String greet(String who);
+    public native String greet(String who);
 }

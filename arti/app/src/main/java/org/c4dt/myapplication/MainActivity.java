@@ -9,12 +9,6 @@ import org.c4dt.myapplication.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("native-lib");
-        System.loadLibrary("arti_android");
-    }
-
     private ActivityMainBinding binding;
 
     @Override
@@ -26,7 +20,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Example of a call to a native method
         TextView tv = binding.sampleText;
-        tv.setText(JniApi.greet("world"));
+
+        JniApi jniApi = new JniApi();
+        tv.setText(jniApi.greet("world"));
     }
 
     /**

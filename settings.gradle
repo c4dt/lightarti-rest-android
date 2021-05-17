@@ -1,2 +1,3 @@
 rootProject.name = "My Application"
 include ':arti'
+include ':arti:app'

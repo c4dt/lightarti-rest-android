@@ -63,6 +63,21 @@ pub unsafe extern "system" fn Java_com_schuetz_rustandroidios_JniApi_greet(
 }
 
 #[no_mangle]
+pub unsafe extern "system" fn Java_org_c4dt_myapplication_JniApi_greet(
+    env: JNIEnv,
+    _: JClass,
+    who: JString,
+) -> jstring {
+    let str: String = env.get_string(who)
+        .expect("Couldn't create rust string").into();
+
+    let output = env.new_string(format!("Hello {}!", str))
+        .expect("Couldn't create java string");
+
+    output.into_inner()
+}
+
+#[no_mangle]
 pub unsafe extern "system" fn Java_com_schuetz_rustandroidios_JniApi_add(
     _env: JNIEnv,
     _: JClass,

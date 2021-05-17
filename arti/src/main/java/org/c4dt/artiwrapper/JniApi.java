@@ -1,4 +1,4 @@
-package org.c4dt.myapplication;
+package org.c4dt.artiwrapper;
 
 import android.util.Log;
 

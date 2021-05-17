@@ -63,7 +63,7 @@ pub unsafe extern "system" fn Java_com_schuetz_rustandroidios_JniApi_greet(
 }
 
 #[no_mangle]
-pub unsafe extern "system" fn Java_org_c4dt_myapplication_JniApi_greet(
+pub unsafe extern "system" fn Java_org_c4dt_artiwrapper_JniApi_greet(
     env: JNIEnv,
     _: JClass,
     who: JString,

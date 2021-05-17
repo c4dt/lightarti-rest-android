@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
 
+import org.c4dt.artiwrapper.JniApi;
 import org.c4dt.myapplication.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {

@@ -1,4 +1,4 @@
-package org.c4dt.myapplication;
+package org.c4dt.artiwrapper;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("org.c4dt.myapplication", appContext.getPackageName());
+        assertEquals("org.c4dt.artiwrapper.test", appContext.getPackageName());
     }
 }

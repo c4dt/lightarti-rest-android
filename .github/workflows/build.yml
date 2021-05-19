@@ -21,7 +21,7 @@ jobs:
         run: rustup show
 
       - name: Build
-        run: ./gradlew cargoBuild assembleRelease
+        run: ./gradlew assembleRelease
 
       - name: Create release
         uses: softprops/action-gh-release@v1

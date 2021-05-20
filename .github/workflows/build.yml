@@ -25,10 +25,10 @@ jobs:
 
       - name: Create release
         uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           name: Release ${{ github.ref }}
           files: |
             ./artiwrapper/build/outputs/aar/artiwrapper-release.aar
-          tag_name: test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -54,7 +54,7 @@ dependencies {
 }
 
 tasks.whenTaskAdded { task ->
-    if (task.name == 'mergeReleaseJniLibFolders') {
+    if (task.name in ['javaPreCompileDebug', 'javaPreCompileRelease', 'mergeReleaseJniLibFolders']) {
         task.dependsOn 'cargoBuild'
     }
 }

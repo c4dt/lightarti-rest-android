@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.library'
+    id 'com.vanniktech.maven.publish'
 }
 
 android {
@@ -57,4 +58,8 @@ tasks.whenTaskAdded { task ->
     if (task.name in ['javaPreCompileDebug', 'javaPreCompileRelease', 'mergeReleaseJniLibFolders']) {
         task.dependsOn 'cargoBuild'
     }
+}
+
+mavenPublish {
+    androidVariantToPublish = "release"
 }

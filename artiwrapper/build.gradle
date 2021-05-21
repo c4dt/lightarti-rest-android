@@ -1,7 +1,18 @@
 plugins {
     id 'com.android.library'
-    id 'com.vanniktech.maven.publish'
+    id 'maven-publish'
+    id 'signing'
 }
+
+def getVersionName() {
+    return VERSION_NAME
+}
+
+def getVersionCode() {
+    return VERSION_CODE
+}
+
+ext.isReleaseVersion = !getVersionName().endsWith('SNAPSHOT')
 
 android {
     compileSdkVersion 30
@@ -10,8 +21,8 @@ android {
     defaultConfig {
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        versionCode getVersionName()
+        versionName getVersionCode()
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
@@ -60,6 +71,75 @@ tasks.whenTaskAdded { task ->
     }
 }
 
-mavenPublish {
-    androidVariantToPublish = "release"
+task androidSourcesJar(type: Jar) {
+    archiveClassifier.set("sources")
+    from android.sourceSets.main.java.source
+}
+
+artifacts {
+    archives androidSourcesJar
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                artifact androidSourcesJar
+
+                groupId = GROUP
+                artifactId = POM_ARTIFACT_ID
+                version = getVersionName()
+
+                pom {
+                    name = POM_NAME
+                    description = POM_DESCRIPTION
+                    url = POM_URL
+                    licenses {
+                        license {
+                            name = POM_LICENSE_NAME
+                            url = POM_LICENSE_URL
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = POM_DEVELOPER_ID
+                            name = POM_DEVELOPER_NAME
+                            email = POM_DEVELOPER_EMAIL
+                        }
+                    }
+                    scm {
+                        url = POM_SCM_URL
+                        connection = POM_SCM_CONNECTION
+                        developerConnection = POM_SCM_DEV_CONNECTION
+                    }
+                }
+            }
+        }
+        repositories {
+            maven {
+                url = isReleaseVersion ? RELEASE_REPOSITORY_URL : SNAPSHOT_REPOSITORY_URL
+                credentials {
+                    username findProperty("nexusUsername")
+                    password findProperty("nexusPassword")
+                }
+            }
+        }
+    }
+}
+
+signing {
+    required {
+        isReleaseVersion// && gradle.taskGraph.hasTask("publish")
+    }
+    def signingKey = findProperty("signingKey")
+    def signingPassword = findProperty("signingPassword")
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications
+}
+
+tasks.withType(Sign) {
+    onlyIf {
+        isReleaseVersion
+    }
 }

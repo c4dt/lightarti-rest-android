@@ -53,6 +53,7 @@ cargo {
     module = "../rust"
     libname = "arti_android"
     targets = ["arm", "arm64", "x86", "x86_64"]
+    profile = 'release'
 }
 
 dependencies {

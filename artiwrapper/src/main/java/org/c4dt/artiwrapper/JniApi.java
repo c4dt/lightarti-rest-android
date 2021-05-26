@@ -15,4 +15,7 @@ public class JniApi {
     }
 
     public native String greet(String who);
+
+    public native void initLogger();
+    public native String getGoogle(String cacheDir);
 }

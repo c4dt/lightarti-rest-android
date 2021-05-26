@@ -3,12 +3,14 @@ package org.c4dt.myapplication;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
 import org.c4dt.artiwrapper.JniApi;
 import org.c4dt.myapplication.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
+    static final String TAG = "ArtiApp";
 
     private ActivityMainBinding binding;
 
@@ -23,7 +25,17 @@ public class MainActivity extends AppCompatActivity {
         TextView tv = binding.sampleText;
 
         JniApi jniApi = new JniApi();
-        tv.setText(jniApi.greet("world"));
+        Log.d(TAG, "greet() → " + jniApi.greet("world"));
+
+        String cacheDir = getApplicationContext().getCacheDir().toString();
+        Log.d(TAG, "cacheDir = " + cacheDir);
+
+        jniApi.initLogger();
+        Log.d(TAG, "initLogger() completed");
+
+        String response = jniApi.getGoogle(cacheDir);
+        Log.d(TAG, "Response: " + response);
+        tv.setText(response);
     }
 
     /**

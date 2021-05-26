@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.c4dt.artiwrapper">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:supportsRtl="true"></application>
 

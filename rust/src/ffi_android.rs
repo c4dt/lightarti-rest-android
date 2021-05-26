@@ -14,7 +14,7 @@ use crate::{blocking_google_ch};
 
 
 #[no_mangle]
-pub unsafe extern "system" fn Java_com_schuetz_rustandroidios_JniApi_initLogger(
+pub unsafe extern "system" fn Java_org_c4dt_artiwrapper_JniApi_initLogger(
     _: JNIEnv,
     _: JClass,
 ) {
@@ -34,7 +34,7 @@ pub unsafe extern "system" fn Java_com_schuetz_rustandroidios_JniApi_initLogger(
 }
 
 #[no_mangle]
-pub unsafe extern "system" fn Java_com_schuetz_rustandroidios_JniApi_getGoogle(
+pub unsafe extern "system" fn Java_org_c4dt_artiwrapper_JniApi_getGoogle(
     env: JNIEnv,
     _: JClass,
     cache_dir_j: JString,

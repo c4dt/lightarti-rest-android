@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
         TextView tv = binding.sampleText;
 
         JniApi jniApi = new JniApi();
-        Log.d(TAG, "greet() → " + jniApi.greet("world"));
+        Log.d(TAG, "greet() → " + jniApi.hello("world"));
 
         String cacheDir = getApplicationContext().getCacheDir().toString();
         Log.d(TAG, "cacheDir = " + cacheDir);
@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         jniApi.initLogger();
         Log.d(TAG, "initLogger() completed");
 
-        String response = jniApi.getGoogle(cacheDir);
+        String response = jniApi.tlsGet(cacheDir, "google.ch");
         Log.d(TAG, "Response: " + response);
         tv.setText(response);
     }

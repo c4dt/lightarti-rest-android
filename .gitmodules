@@ -1,0 +1,3 @@
+[submodule "rust"]
+	path = rust
+	url = git@github.com:c4dt/arti-rest.git

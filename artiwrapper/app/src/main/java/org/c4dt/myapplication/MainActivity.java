@@ -25,7 +25,6 @@ public class MainActivity extends AppCompatActivity {
         TextView tv = binding.sampleText;
 
         JniApi jniApi = new JniApi();
-        Log.d(TAG, "greet() → " + jniApi.hello("world"));
 
         String cacheDir = getApplicationContext().getCacheDir().toString();
         Log.d(TAG, "cacheDir = " + cacheDir);

@@ -24,13 +24,25 @@ jobs:
         run: rustup show
 
       - name: Build
-        run: ./gradlew assembleRelease
+        run: >
+          ./gradlew assembleRelease &&
+          jar tvf $( find . -name '*.aar' ) |
+          grep '\.so$'
 
-      - name: Create release
+      - name: Retrieve tag name
+        uses: actions/github-script@v3
+        id: get-tag
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          # The format for ref is `refs/tags/<tag_name>`
+          script: return context.ref.split('/')[2]
+          result-encoding: string
+
+      - name: Create tag release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: Release ${{ github.ref }}
+          name: Release {{ steps.get-tag.outputs.result }}
           files: |
             ./artiwrapper/build/outputs/aar/artiwrapper-release.aar
         env:

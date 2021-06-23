@@ -7,7 +7,8 @@ import android.util.Log;
 import android.widget.TextView;
 
 import org.c4dt.artiwrapper.HttpResponse;
-import org.c4dt.artiwrapper.JniApi;
+import org.c4dt.artiwrapper.TorLibApi;
+import org.c4dt.artiwrapper.TorLibException;
 import org.c4dt.myapplication.databinding.ActivityMainBinding;
 
 import java.util.Arrays;
@@ -28,36 +29,44 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Example of a call to a native method
         TextView tv = binding.sampleText;
 
-        JniApi jniApi = new JniApi();
+        TorLibApi torLibApi = new TorLibApi();
 
         String cacheDir = getApplicationContext().getCacheDir().toString();
         Log.d(TAG, "cacheDir = " + cacheDir);
 
-        jniApi.initLogger();
-        Log.d(TAG, "initLogger() completed");
-
-        byte[] body = "key1=val1&key2=val2".getBytes();
-        Map<String, List<String>> headers = new HashMap<>();
-        headers.put("header-one", Collections.singletonList("hello"));
-        headers.put("header-two", Arrays.asList("how", "are", "you"));
-        headers.put("Content-Length", Collections.singletonList(String.valueOf(body.length)));
-        headers.put("Content-Type", Collections.singletonList("application/x-www-form-urlencoded"));
         try {
-            HttpResponse resp = jniApi.tlsPost(cacheDir, "https://httpbin.org/post", headers, body);
+            byte[] body = "key1=val1&key2=val2".getBytes();
+            Map<String, List<String>> headers = new HashMap<>();
+            headers.put("header-one", Collections.singletonList("hello"));
+            headers.put("header-two", Arrays.asList("how", "are", "you"));
+            headers.put("Content-Length", Collections.singletonList(String.valueOf(body.length)));
+            headers.put("Content-Type", Collections.singletonList("application/x-www-form-urlencoded"));
+
+            HttpResponse resp = torLibApi.torRequest(cacheDir,
+                    "POST", "https://httpbin.org/post", headers, body);
             Log.d(TAG, "Response from POST: ");
             Log.d(TAG, "   status: " + resp.getStatus());
             Log.d(TAG, "   version: " + resp.getVersion());
             Log.d(TAG, "   headers: " + resp.getHeaders());
             Log.d(TAG, "   body: " + new String(resp.getBody()));
-        } catch (Exception e) {
+        } catch (TorLibException e) {
             Log.d(TAG, "!!! Exception: " + e);
         }
 
-        String response = jniApi.tlsGet(cacheDir, "google.ch");
-        Log.d(TAG, "Response: " + response);
-        tv.setText(response);
+        try {
+            HttpResponse resp = torLibApi.torRequest(cacheDir,
+                    "GET", "https://google.ch", new HashMap(), new byte[]{});
+            Log.d(TAG, "Response from GET: ");
+            Log.d(TAG, "   status: " + resp.getStatus());
+            Log.d(TAG, "   version: " + resp.getVersion());
+            Log.d(TAG, "   headers: " + resp.getHeaders());
+            String bodyStr = new String(resp.getBody());
+            Log.d(TAG, "   body: " + bodyStr);
+            tv.setText(bodyStr);
+        } catch (TorLibException e) {
+            Log.d(TAG, "!!! Exception: " + e);
+        }
     }
 }

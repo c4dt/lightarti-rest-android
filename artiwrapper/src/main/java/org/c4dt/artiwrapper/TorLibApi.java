@@ -5,8 +5,8 @@ import android.util.Log;
 import java.util.List;
 import java.util.Map;
 
-public class JniApi {
-    static final String TAG = "ArtiLibJni";
+public class TorLibApi {
+    static final String TAG = "ArtiLibApi";
 
     static {
         try {
@@ -15,11 +15,14 @@ public class JniApi {
         } catch (UnsatisfiedLinkError e) {
             Log.e(TAG, "Cannot load Arti Rust library: " + e);
         }
+
+        TorLibApi.initLogger();
+        Log.d(TAG, "initLogger() completed");
     }
 
     public native String hello(String who);
 
-    public native void initLogger();
-    public native String tlsGet(String cacheDir, String domain);
-    public native HttpResponse tlsPost(String cacheDir, String url, Map<String, List<String>> headers, byte[] body);
+    public static native void initLogger();
+    public native HttpResponse torRequest(String cacheDir, String method, String url, Map<String, List<String>> headers, byte[] body)
+            throws TorLibException;
 }

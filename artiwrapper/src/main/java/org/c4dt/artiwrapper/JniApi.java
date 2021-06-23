@@ -2,6 +2,9 @@ package org.c4dt.artiwrapper;
 
 import android.util.Log;
 
+import java.util.List;
+import java.util.Map;
+
 public class JniApi {
     static final String TAG = "ArtiLibJni";
 
@@ -18,4 +21,5 @@ public class JniApi {
 
     public native void initLogger();
     public native String tlsGet(String cacheDir, String domain);
+    public native HttpResponse tlsPost(String cacheDir, String url, Map<String, List<String>> headers, byte[] body);
 }

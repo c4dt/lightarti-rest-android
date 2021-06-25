@@ -3,6 +3,7 @@ package org.c4dt.myapplication;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.os.HandlerCompat;
 
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -13,6 +14,10 @@ import org.c4dt.artiwrapper.HttpResponse;
 import org.c4dt.artiwrapper.TorLibApi;
 import org.c4dt.myapplication.databinding.ActivityMainBinding;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,21 +29,46 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
 
+    private void copyFiles(AssetManager am, File cacheDir) throws IOException {
+        for (String filename: new String[]{"consensus.txt", "microdescriptors.txt"}) {
+            File dest = new File(cacheDir, filename);
+            InputStream is = am.open(filename);
+            FileOutputStream fos = new FileOutputStream(dest);
+
+            byte[] buf = new byte[1024];
+            int nbRead;
+
+            while ((nbRead = is.read(buf)) != -1) {
+                fos.write(buf, 0, nbRead);
+            }
+
+            is.close();
+            fos.close();
+
+            Log.d(TAG, "Copied \"" + filename + "\"");
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        Handler handler = HandlerCompat.createAsync(Looper.getMainLooper());
 
         TextView tv = binding.sampleText;
 
+        File cacheDir = getApplicationContext().getCacheDir();
+        Log.d(TAG, "cacheDir = " + cacheDir.toString());
+
+        try {
+            copyFiles(getApplicationContext().getAssets(), cacheDir);
+        } catch (IOException e) {
+            Log.d(TAG, "Failed to copy files: " + e);
+        }
+
         TorLibApi torLibApi = new TorLibApi();
-
-        String cacheDir = getApplicationContext().getCacheDir().toString();
-        Log.d(TAG, "cacheDir = " + cacheDir);
-
-        Handler handler = HandlerCompat.createAsync(Looper.getMainLooper());
 
         byte[] body = "key1=val1&key2=val2".getBytes();
         Map<String, List<String>> headers = new HashMap<>();
@@ -49,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
         tv.setText("Starting request...");
 
-        torLibApi.submitTorRequest(cacheDir,
+        torLibApi.submitTorRequest(cacheDir.toString(),
                 "POST", "https://httpbin.org/post", headers, body,
                 result -> {
                     if (result instanceof TorLibApi.TorRequestResult.Success) {

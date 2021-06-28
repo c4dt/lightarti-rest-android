@@ -1,18 +1,53 @@
 package org.c4dt.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.os.HandlerCompat;
 
+import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.TextView;
 
-import org.c4dt.artiwrapper.JniApi;
+import org.c4dt.artiwrapper.HttpResponse;
+import org.c4dt.artiwrapper.TorLibApi;
 import org.c4dt.myapplication.databinding.ActivityMainBinding;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     static final String TAG = "ArtiApp";
 
     private ActivityMainBinding binding;
+
+    private void copyFiles(AssetManager am, File cacheDir) throws IOException {
+        for (String filename: new String[]{"consensus.txt", "microdescriptors.txt"}) {
+            File dest = new File(cacheDir, filename);
+            InputStream is = am.open(filename);
+            FileOutputStream fos = new FileOutputStream(dest);
+
+            byte[] buf = new byte[1024];
+            int nbRead;
+
+            while ((nbRead = is.read(buf)) != -1) {
+                fos.write(buf, 0, nbRead);
+            }
+
+            is.close();
+            fos.close();
+
+            Log.d(TAG, "Copied \"" + filename + "\"");
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,20 +55,49 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        Handler handler = HandlerCompat.createAsync(Looper.getMainLooper());
 
-        // Example of a call to a native method
         TextView tv = binding.sampleText;
 
-        JniApi jniApi = new JniApi();
+        File cacheDir = getApplicationContext().getCacheDir();
+        Log.d(TAG, "cacheDir = " + cacheDir.toString());
 
-        String cacheDir = getApplicationContext().getCacheDir().toString();
-        Log.d(TAG, "cacheDir = " + cacheDir);
+        try {
+            copyFiles(getApplicationContext().getAssets(), cacheDir);
+        } catch (IOException e) {
+            Log.d(TAG, "Failed to copy files: " + e);
+        }
 
-        jniApi.initLogger();
-        Log.d(TAG, "initLogger() completed");
+        TorLibApi torLibApi = new TorLibApi();
 
-        String response = jniApi.tlsGet(cacheDir, "google.ch");
-        Log.d(TAG, "Response: " + response);
-        tv.setText(response);
+        byte[] body = "key1=val1&key2=val2".getBytes();
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put("header-one", Collections.singletonList("hello"));
+        headers.put("header-two", Arrays.asList("how", "are", "you"));
+        headers.put("Content-Length", Collections.singletonList(String.valueOf(body.length)));
+        headers.put("Content-Type", Collections.singletonList("application/x-www-form-urlencoded"));
+
+        tv.setText("Starting request...");
+
+        torLibApi.submitTorRequest(cacheDir.toString(),
+                "POST", "https://httpbin.org/post", headers, body,
+                result -> {
+                    if (result instanceof TorLibApi.TorRequestResult.Success) {
+                        HttpResponse resp = ((TorLibApi.TorRequestResult.Success) result).getResult();
+                        Log.d(TAG, "Response from POST: ");
+                        Log.d(TAG, "   status: " + resp.getStatus());
+                        Log.d(TAG, "   version: " + resp.getVersion());
+                        Log.d(TAG, "   headers: " + resp.getHeaders());
+                        Log.d(TAG, "   body: " + new String(resp.getBody()));
+
+                        handler.post(() -> tv.setText("Result received: " + resp.getStatus()));
+                    } else {
+                        Exception e = ((TorLibApi.TorRequestResult.Error) result).getError();
+                        Log.d(TAG, "!!! Exception: " + e);
+
+                        handler.post(() -> tv.setText("Exception: " + e));
+                    }
+                }
+        );
     }
 }

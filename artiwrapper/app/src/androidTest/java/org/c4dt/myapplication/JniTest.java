@@ -2,7 +2,7 @@ package org.c4dt.myapplication;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import org.c4dt.artiwrapper.JniApi;
+import org.c4dt.artiwrapper.TorLibApi;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -13,7 +13,7 @@ public class JniTest {
 
     @Test
     public void helloRust() {
-        JniApi jniApi = new JniApi();
-        assertEquals("Hello world!", jniApi.hello("world"));
+        TorLibApi torLibApi = new TorLibApi();
+        assertEquals("Hello world!", torLibApi.hello("world"));
     }
 }

@@ -6,9 +6,11 @@ import android.util.Log;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
@@ -36,8 +38,17 @@ public class JniTest {
 
     private static String TAG = "ArtiTest";
 
+    private String dummyCacheDir = "dummy cache dir";
+    private String dummyMethod = "DUMMY";
+    private String dummyUrl = "https://example.com";
+    private Map<String, List<String>> dummyHeaders = new HashMap<>();
+    private byte[] dummyBody = "dummy body".getBytes();
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     private void copyFiles(AssetManager am, File cacheDir) throws IOException {
         Log.d(TAG, "assets: " + Arrays.toString(am.list("")));
@@ -78,6 +89,75 @@ public class JniTest {
     }
 
     @Test
+    public void helloRustException() {
+        thrown.expect(Exception.class);
+        thrown.expectMessage(containsString("create rust string"));
+
+        api.hello(null);
+    }
+
+    @Test
+    public void nullCacheDir() throws TorLibException {
+        thrown.expect(TorLibException.class);
+        thrown.expectMessage(containsString("cache_dir"));
+        thrown.expectMessage(containsString("Null pointer"));
+
+        api.torRequest(null, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+    }
+
+    @Test
+    public void nullMethod() throws TorLibException {
+        thrown.expect(TorLibException.class);
+        thrown.expectMessage(containsString("method"));
+        thrown.expectMessage(containsString("Null pointer"));
+
+        api.torRequest(dummyCacheDir, null, dummyUrl, dummyHeaders, dummyBody);
+    }
+
+    @Test
+    public void invalidMethod() throws TorLibException {
+        thrown.expect(TorLibException.class);
+        thrown.expectMessage(containsString("invalid HTTP method"));
+
+        api.torRequest(dummyCacheDir, "", dummyUrl, dummyHeaders, dummyBody);
+    }
+
+    @Test
+    public void nullUrl() throws TorLibException {
+        thrown.expect(TorLibException.class);
+        thrown.expectMessage(containsString("url"));
+        thrown.expectMessage(containsString("Null pointer"));
+
+        api.torRequest(dummyCacheDir, dummyMethod, null, dummyHeaders, dummyBody);
+    }
+
+    @Test
+    public void invalidUrl() throws TorLibException {
+        thrown.expect(TorLibException.class);
+        thrown.expectMessage(containsString("invalid"));
+
+        api.torRequest(dummyCacheDir, dummyMethod, "not:/valid", dummyHeaders, dummyBody);
+    }
+
+    @Test
+    public void nullHeaders() throws TorLibException {
+        thrown.expect(TorLibException.class);
+        thrown.expectMessage(containsString("JMap"));
+        thrown.expectMessage(containsString("Null pointer"));
+
+        api.torRequest(dummyCacheDir, dummyMethod, dummyUrl, null, dummyBody);
+    }
+
+    @Test
+    public void nullBody() throws TorLibException {
+        thrown.expect(TorLibException.class);
+        thrown.expectMessage(containsString("byte array"));
+        thrown.expectMessage(containsString("Null pointer"));
+
+        api.torRequest(dummyCacheDir, dummyMethod, dummyUrl, dummyHeaders, null);
+    }
+
+    @Test
     public void syncPost() {
         try {
             byte[] body = "key1=val1&key2=val2".getBytes();
@@ -96,7 +176,7 @@ public class JniTest {
             Log.d(TAG, "   headers: " + resp.getHeaders());
             Log.d(TAG, "   body: " + new String(resp.getBody()));
 
-            assertEquals(resp.getStatus(), 200);
+            assertEquals(200, resp.getStatus());
         } catch (TorLibException e) {
             Log.d(TAG, "!!! Exception: " + e);
             fail();
@@ -141,14 +221,14 @@ public class JniTest {
 
         signal.await(120, TimeUnit.SECONDS);
 
-        assertEquals(response.get().getStatus(), 200);
+        assertEquals(200, response.get().getStatus());
     }
 
     @Test
     public void syncGet() {
         try {
             HttpResponse resp = api.torRequest(cacheDir,
-                    "GET", "https://google.ch", new HashMap(), new byte[]{});
+                    "GET", "https://www.c4dt.org", new HashMap(), new byte[]{});
 
             Log.d(TAG, "Response from GET: ");
             Log.d(TAG, "   status: " + resp.getStatus());
@@ -156,7 +236,7 @@ public class JniTest {
             Log.d(TAG, "   headers: " + resp.getHeaders());
             Log.d(TAG, "   body: " + new String(resp.getBody()));
 
-            assertEquals(resp.getStatus(), 200);
+            assertEquals(200, resp.getStatus());
         } catch (TorLibException e) {
             Log.d(TAG, "!!! Exception: " + e);
             fail();

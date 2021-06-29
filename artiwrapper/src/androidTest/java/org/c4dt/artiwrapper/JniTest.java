@@ -39,7 +39,7 @@ public class JniTest {
     private static String TAG = "ArtiTest";
 
     private String dummyCacheDir = "dummy cache dir";
-    private String dummyMethod = "DUMMY";
+    private TorLibApi.TorRequestMethod dummyMethod = TorLibApi.TorRequestMethod.GET;
     private String dummyUrl = "https://example.com";
     private Map<String, List<String>> dummyHeaders = new HashMap<>();
     private byte[] dummyBody = "dummy body".getBytes();
@@ -90,7 +90,7 @@ public class JniTest {
 
     @Test
     public void helloRustException() {
-        thrown.expect(Exception.class);
+        thrown.expect(TorLibException.class);
         thrown.expectMessage(containsString("create rust string"));
 
         api.hello(null);
@@ -102,7 +102,7 @@ public class JniTest {
         thrown.expectMessage(containsString("cache_dir"));
         thrown.expectMessage(containsString("Null pointer"));
 
-        api.torRequest(null, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+        api.syncTorRequest(null, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
     }
 
     @Test
@@ -111,15 +111,7 @@ public class JniTest {
         thrown.expectMessage(containsString("method"));
         thrown.expectMessage(containsString("Null pointer"));
 
-        api.torRequest(dummyCacheDir, null, dummyUrl, dummyHeaders, dummyBody);
-    }
-
-    @Test
-    public void invalidMethod() throws TorLibException {
-        thrown.expect(TorLibException.class);
-        thrown.expectMessage(containsString("invalid HTTP method"));
-
-        api.torRequest(dummyCacheDir, "", dummyUrl, dummyHeaders, dummyBody);
+        api.syncTorRequest(dummyCacheDir, null, dummyUrl, dummyHeaders, dummyBody);
     }
 
     @Test
@@ -128,7 +120,7 @@ public class JniTest {
         thrown.expectMessage(containsString("url"));
         thrown.expectMessage(containsString("Null pointer"));
 
-        api.torRequest(dummyCacheDir, dummyMethod, null, dummyHeaders, dummyBody);
+        api.syncTorRequest(dummyCacheDir, dummyMethod, null, dummyHeaders, dummyBody);
     }
 
     @Test
@@ -136,7 +128,7 @@ public class JniTest {
         thrown.expect(TorLibException.class);
         thrown.expectMessage(containsString("invalid"));
 
-        api.torRequest(dummyCacheDir, dummyMethod, "not:/valid", dummyHeaders, dummyBody);
+        api.syncTorRequest(dummyCacheDir, dummyMethod, "not:/valid", dummyHeaders, dummyBody);
     }
 
     @Test
@@ -145,7 +137,7 @@ public class JniTest {
         thrown.expectMessage(containsString("JMap"));
         thrown.expectMessage(containsString("Null pointer"));
 
-        api.torRequest(dummyCacheDir, dummyMethod, dummyUrl, null, dummyBody);
+        api.syncTorRequest(dummyCacheDir, dummyMethod, dummyUrl, null, dummyBody);
     }
 
     @Test
@@ -154,7 +146,7 @@ public class JniTest {
         thrown.expectMessage(containsString("byte array"));
         thrown.expectMessage(containsString("Null pointer"));
 
-        api.torRequest(dummyCacheDir, dummyMethod, dummyUrl, dummyHeaders, null);
+        api.syncTorRequest(dummyCacheDir, dummyMethod, dummyUrl, dummyHeaders, null);
     }
 
     @Test
@@ -167,8 +159,8 @@ public class JniTest {
             headers.put("Content-Length", Collections.singletonList(String.valueOf(body.length)));
             headers.put("Content-Type", Collections.singletonList("application/x-www-form-urlencoded"));
 
-            HttpResponse resp = api.torRequest(cacheDir,
-                    "POST", "https://httpbin.org/post", headers, body);
+            HttpResponse resp = api.syncTorRequest(cacheDir,
+                    TorLibApi.TorRequestMethod.POST, "https://httpbin.org/post", headers, body);
 
             Log.d(TAG, "Response from POST: ");
             Log.d(TAG, "   status: " + resp.getStatus());
@@ -197,7 +189,7 @@ public class JniTest {
         AtomicReference<HttpResponse> response = new AtomicReference<>();
 
         api.submitTorRequest(cacheDir,
-                "POST", "https://httpbin.org/post", headers, body,
+                TorLibApi.TorRequestMethod.POST, "https://httpbin.org/post", headers, body,
                 result -> {
                     if (result instanceof TorLibApi.TorRequestResult.Success) {
                         HttpResponse resp = ((TorLibApi.TorRequestResult.Success) result).getResult();
@@ -227,8 +219,8 @@ public class JniTest {
     @Test
     public void syncGet() {
         try {
-            HttpResponse resp = api.torRequest(cacheDir,
-                    "GET", "https://www.c4dt.org", new HashMap(), new byte[]{});
+            HttpResponse resp = api.syncTorRequest(cacheDir,
+                    TorLibApi.TorRequestMethod.GET, "https://www.c4dt.org", new HashMap(), new byte[]{});
 
             Log.d(TAG, "Response from GET: ");
             Log.d(TAG, "   status: " + resp.getStatus());

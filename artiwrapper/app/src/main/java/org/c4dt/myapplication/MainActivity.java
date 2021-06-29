@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         tv.setText("Starting request...");
 
         torLibApi.submitTorRequest(cacheDir.toString(),
-                "POST", "https://httpbin.org/post", headers, body,
+                TorLibApi.TorRequestMethod.POST, "https://httpbin.org/post", headers, body,
                 result -> {
                     if (result instanceof TorLibApi.TorRequestResult.Success) {
                         HttpResponse resp = ((TorLibApi.TorRequestResult.Success) result).getResult();
@@ -90,7 +90,8 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "   headers: " + resp.getHeaders());
                         Log.d(TAG, "   body: " + new String(resp.getBody()));
 
-                        handler.post(() -> tv.setText("Result received: " + resp.getStatus()));
+                        handler.post(() -> tv.setText(String.format(
+                                "Result received [status = %d]:\n\n%s", resp.getStatus(), new String(resp.getBody()))));
                     } else {
                         Exception e = ((TorLibApi.TorRequestResult.Error) result).getError();
                         Log.d(TAG, "!!! Exception: " + e);

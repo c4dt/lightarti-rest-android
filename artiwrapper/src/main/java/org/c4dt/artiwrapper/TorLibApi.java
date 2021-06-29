@@ -12,6 +12,14 @@ public class TorLibApi {
 
     private final Executor executor;
 
+    public enum TorRequestMethod {
+        GET,
+        HEAD,
+        POST,
+        PUT,
+        DELETE,
+    }
+
     public static class TorRequestResult {
         private TorRequestResult(){}
 
@@ -65,20 +73,24 @@ public class TorLibApi {
     }
 
     public void submitTorRequest(
-            String cacheDir, String method, String url, Map<String, List<String>> headers, byte[] body,
+            String cacheDir, TorRequestMethod method, String url, Map<String, List<String>> headers, byte[] body,
             final TorLibCallback callback) {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    HttpResponse response = torRequest(
-                            cacheDir, method, url, headers, body);
-                    callback.onComplete(new TorRequestResult.Success(response));
-                } catch (Exception e) {
-                    callback.onComplete(new TorRequestResult.Error(e));
-                }
+        executor.execute(() -> {
+            try {
+                HttpResponse response = syncTorRequest(cacheDir, method, url, headers, body);
+                callback.onComplete(new TorRequestResult.Success(response));
+            } catch (Exception e) {
+                callback.onComplete(new TorRequestResult.Error(e));
             }
         });
+    }
+
+    public HttpResponse syncTorRequest(String cacheDir, TorRequestMethod method, String url, Map<String, List<String>> headers, byte[] body)
+            throws TorLibException {
+        if (method == null) {
+            throw new TorLibException("Invalid method: Null pointer");
+        }
+        return torRequest(cacheDir, method.name(), url, headers, body);
     }
 
     // Native methods
@@ -86,6 +98,6 @@ public class TorLibApi {
     public native String hello(String who);
 
     public static native void initLogger();
-    public native HttpResponse torRequest(String cacheDir, String method, String url, Map<String, List<String>> headers, byte[] body)
+    private native HttpResponse torRequest(String cacheDir, String method, String url, Map<String, List<String>> headers, byte[] body)
             throws TorLibException;
 }

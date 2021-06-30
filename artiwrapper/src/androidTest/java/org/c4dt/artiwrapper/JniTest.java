@@ -188,7 +188,7 @@ public class JniTest {
 
         AtomicReference<HttpResponse> response = new AtomicReference<>();
 
-        api.submitTorRequest(cacheDir,
+        api.asyncTorRequest(cacheDir,
                 TorLibApi.TorRequestMethod.POST, "https://httpbin.org/post", headers, body,
                 result -> {
                     if (result instanceof TorLibApi.TorRequestResult.Success) {

@@ -24,6 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Simple example application showing how to use the Arti wrapper.
+ */
 public class MainActivity extends AppCompatActivity {
     static final String TAG = "ArtiApp";
 
@@ -79,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
         tv.setText("Starting request...");
 
-        torLibApi.submitTorRequest(cacheDir.toString(),
+        torLibApi.asyncTorRequest(cacheDir.toString(),
                 TorLibApi.TorRequestMethod.POST, "https://httpbin.org/post", headers, body,
                 result -> {
                     if (result instanceof TorLibApi.TorRequestResult.Success) {

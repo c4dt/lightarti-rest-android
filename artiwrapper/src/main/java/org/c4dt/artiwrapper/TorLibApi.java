@@ -12,6 +12,9 @@ public class TorLibApi {
 
     private final Executor executor;
 
+    /**
+     * Enumeration type for an HTTP method
+     */
     public enum TorRequestMethod {
         GET,
         HEAD,
@@ -20,9 +23,15 @@ public class TorLibApi {
         DELETE,
     }
 
+    /**
+     * Result of a asynchronous request, passed to the callback
+     */
     public static class TorRequestResult {
         private TorRequestResult(){}
 
+        /**
+         * Success result
+         */
         public static class Success extends TorRequestResult {
             private final HttpResponse result;
 
@@ -35,6 +44,9 @@ public class TorLibApi {
             }
         }
 
+        /**
+         * Error result
+         */
         public static class Error extends TorRequestResult {
             private final Exception error;
 
@@ -48,6 +60,9 @@ public class TorLibApi {
         }
     }
 
+    /**
+     * Callback for an asynchronous request
+     */
     public interface TorLibCallback {
         void onComplete(TorRequestResult result);
     }
@@ -72,7 +87,21 @@ public class TorLibApi {
         this.executor = executor;
     }
 
-    public void submitTorRequest(
+    /**
+     * Perform an asynchronous request
+     *
+     * @param cacheDir cache directory, used:
+     *                 - by the library for the creation of temporary files
+     *                 - to pass the `consensus.txt` and `microdescriptors.txt` files to the library
+     *                 These files must be copied to the given directory before calling this method.
+     *
+     * @param method request HTTP method
+     * @param url request URL
+     * @param headers request headers
+     * @param body request body
+     * @param callback callback to provide the request result
+     */
+    public void asyncTorRequest(
             String cacheDir, TorRequestMethod method, String url, Map<String, List<String>> headers, byte[] body,
             final TorLibCallback callback) {
         executor.execute(() -> {
@@ -85,6 +114,21 @@ public class TorLibApi {
         });
     }
 
+    /**
+     * Perform a synchronous (blocking) request
+     *
+     * @param cacheDir cache directory, used:
+     *                 - by the library for the creation of temporary files
+     *                 - to pass the `consensus.txt` and `microdescriptors.txt` files to the library
+     *                 These files must be copied to the given directory before calling this method.
+     *
+     * @param method request HTTP method
+     * @param url request URL
+     * @param headers request headers
+     * @param body request body
+     * @return the request response
+     * @throws TorLibException
+     */
     public HttpResponse syncTorRequest(String cacheDir, TorRequestMethod method, String url, Map<String, List<String>> headers, byte[] body)
             throws TorLibException {
         if (method == null) {
@@ -95,9 +139,12 @@ public class TorLibApi {
 
     // Native methods
 
+    /**
+     * Simple test method to verify access to the native library.
+     */
     public native String hello(String who);
 
-    public static native void initLogger();
+    private static native void initLogger();
     private native HttpResponse torRequest(String cacheDir, String method, String url, Map<String, List<String>> headers, byte[] body)
             throws TorLibException;
 }

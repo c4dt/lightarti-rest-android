@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Request response returned by the library
+ * Request response returned by the library.
  */
 public class HttpResponse {
     private int status;
@@ -20,36 +20,36 @@ public class HttpResponse {
     }
 
     /**
-     * Get the response status code (e.g. 200 == OK)
+     * Get the response status code (e.g. 200 == OK).
      *
-     * @return status code
+     * @return the status code
      */
     public int getStatus() {
         return status;
     }
 
     /**
-     * Get the response HTTP version (e.g. "HTTP/1.1")
+     * Get the response HTTP version (e.g. "HTTP/1.1").
      *
-     * @return HTTP version
+     * @return the HTTP version of the response
      */
     public String getVersion() {
         return version;
     }
 
     /**
-     * Get the response headers
+     * Get the response headers.
      *
-     * @return HTTP headers
+     * @return the HTTP headers of the response
      */
     public Map<String, List<String>> getHeaders() {
         return headers;
     }
 
     /**
-     * Get the response body
+     * Get the response body.
      *
-     * @return body
+     * @return the body of the response
      */
     public byte[] getBody() {
         return body;

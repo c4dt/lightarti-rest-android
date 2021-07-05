@@ -7,13 +7,16 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+/**
+ * API to execute Tor requests.
+ */
 public class TorLibApi {
     static final String TAG = "ArtiLibApi";
 
     private final Executor executor;
 
     /**
-     * Enumeration type for an HTTP method
+     * Enumeration type for an HTTP method.
      */
     public enum TorRequestMethod {
         GET,
@@ -24,18 +27,18 @@ public class TorLibApi {
     }
 
     /**
-     * Result of a asynchronous request, passed to the callback
+     * Result of am asynchronous request, passed to the callback.
      */
     public static class TorRequestResult {
         private TorRequestResult(){}
 
         /**
-         * Success result
+         * Success result.
          */
         public static class Success extends TorRequestResult {
             private final HttpResponse result;
 
-            public Success(HttpResponse response) {
+            private Success(HttpResponse response) {
                 result = response;
             }
 
@@ -45,12 +48,12 @@ public class TorLibApi {
         }
 
         /**
-         * Error result
+         * Error result.
          */
         public static class Error extends TorRequestResult {
             private final Exception error;
 
-            public Error(Exception e) {
+            private Error(Exception e) {
                 error = e;
             }
 
@@ -61,7 +64,7 @@ public class TorLibApi {
     }
 
     /**
-     * Callback for an asynchronous request
+     * Callback for an asynchronous request.
      */
     public interface TorLibCallback {
         void onComplete(TorRequestResult result);
@@ -79,27 +82,37 @@ public class TorLibApi {
         Log.d(TAG, "initLogger() completed");
     }
 
+    /**
+     * Create a new instance of the API. The new object is then used to send requests to the library.
+     * The default executor used for asynchronous requests is a single thread executor.
+     */
     public TorLibApi() {
         this(Executors.newSingleThreadExecutor());
     }
 
+    /**
+     * Create a new instance of the API. The new object is then used to send requests to the library.
+     *
+     * @param executor the executor used for asynchronous requests
+     */
     public TorLibApi(Executor executor) {
         this.executor = executor;
     }
 
     /**
-     * Perform an asynchronous request
+     * Perform an asynchronous request. The <code>cacheDir</code> argument is used in two ways:
+     * <ul>
+     *     <li>by the library for the creation of temporary files</li>
+     *     <li>to pass the <code>consensus.txt</code> and <code>microdescriptors.txt</code> files to the library</li>
+     * </ul>
+     * These files must be copied to the given directory before calling this method.
      *
-     * @param cacheDir cache directory, used:
-     *                 - by the library for the creation of temporary files
-     *                 - to pass the `consensus.txt` and `microdescriptors.txt` files to the library
-     *                 These files must be copied to the given directory before calling this method.
-     *
-     * @param method request HTTP method
-     * @param url request URL
-     * @param headers request headers
-     * @param body request body
-     * @param callback callback to provide the request result
+     * @param cacheDir the cache directory path
+     * @param method the HTTP method for the request
+     * @param url the URL for the request
+     * @param headers the headers for the request
+     * @param body the body for the request
+     * @param callback the callback which will receive the request result
      */
     public void asyncTorRequest(
             String cacheDir, TorRequestMethod method, String url, Map<String, List<String>> headers, byte[] body,
@@ -115,17 +128,18 @@ public class TorLibApi {
     }
 
     /**
-     * Perform a synchronous (blocking) request
+     * Perform a synchronous (blocking) request. The <code>cacheDir</code> argument is used in two ways:
+     * <ul>
+     *     <li>by the library for the creation of temporary files</li>
+     *     <li>to pass the <code>consensus.txt</code> and <code>microdescriptors.txt</code> files to the library</li>
+     * </ul>
+     * These files must be copied to the given directory before calling this method.
      *
-     * @param cacheDir cache directory, used:
-     *                 - by the library for the creation of temporary files
-     *                 - to pass the `consensus.txt` and `microdescriptors.txt` files to the library
-     *                 These files must be copied to the given directory before calling this method.
-     *
-     * @param method request HTTP method
-     * @param url request URL
-     * @param headers request headers
-     * @param body request body
+     * @param cacheDir the cache directory path
+     * @param method the HTTP method for the request
+     * @param url the URL for the request
+     * @param headers the headers for the request
+     * @param body the body for the request
      * @return the request response
      * @throws TorLibException
      */

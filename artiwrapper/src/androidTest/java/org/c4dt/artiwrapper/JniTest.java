@@ -36,7 +36,10 @@ public class JniTest {
     private String cacheDir;
     private AssetManager am;
 
-    private static String TAG = "ArtiTest";
+    private static final String TAG = "ArtiTest";
+
+    private static final String CONSENSUS_FILENAME = "consensus.txt";
+    private static final String MICRODESCRIPTORS_FILENAME = "microdescriptors.txt";
 
     private String dummyCacheDir = "dummy cache dir";
     private TorLibApi.TorRequestMethod dummyMethod = TorLibApi.TorRequestMethod.GET;
@@ -53,7 +56,7 @@ public class JniTest {
     private void copyFiles(AssetManager am, File cacheDir) throws IOException {
         Log.d(TAG, "assets: " + Arrays.toString(am.list("")));
 
-        for (String filename: new String[]{"consensus.txt", "microdescriptors.txt"}) {
+        for (String filename: new String[]{CONSENSUS_FILENAME, MICRODESCRIPTORS_FILENAME}) {
             File dest = new File(cacheDir, filename);
 
             InputStream is = am.open(filename);
@@ -103,6 +106,36 @@ public class JniTest {
         thrown.expectMessage(containsString("Null pointer"));
 
         api.syncTorRequest(null, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+    }
+
+    @Test
+    public void nonexistentCacheDir() throws TorLibException {
+        thrown.expect(TorLibException.class);
+        thrown.expectMessage(containsString("No such file or directory"));
+
+        api.syncTorRequest(dummyCacheDir, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+    }
+
+    @Test
+    public void missingConsensus() throws TorLibException {
+        thrown.expect(TorLibException.class);
+        thrown.expectMessage(containsString("Failed to read the consensus"));
+
+        File f = new File(folder.getRoot(), CONSENSUS_FILENAME);
+        f.delete();
+
+        api.syncTorRequest(cacheDir, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+    }
+
+    @Test
+    public void missingMicroDescriptors() throws TorLibException {
+        thrown.expect(TorLibException.class);
+        thrown.expectMessage(containsString("Failed to read microdescriptors"));
+
+        File f = new File(folder.getRoot(), MICRODESCRIPTORS_FILENAME);
+        f.delete();
+
+        api.syncTorRequest(cacheDir, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
     }
 
     @Test

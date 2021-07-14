@@ -1,5 +1,7 @@
 # arti-android
 
+> :warning: **Warning: arti-android is not secure in all situations** Arti-android builds on top of [arti-rest]((https://github.com/c4dt/arti-rest), which modifies several core parts of `arti`. It therefore does not have the same security guarantees as arti or the stock Tor client would. For more information, see the [arti-rest]((https://github.com/c4dt/arti-rest) respository.
+
 Android wrapper based on [arti](https://gitlab.torproject.org/tpo/core/arti), "An
 implementation of Tor, in Rust".
 

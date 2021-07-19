@@ -16,6 +16,8 @@ implementation 'io.github.c4dt:artiwrapper:<version>'
 
 When a new release should be published on Maven, use the following steps:
 
+- Update `VERSION_NAME` and `VERSION_CODE` in the [properties
+  file](https://github.com/c4dt/arti-android/blob/main/artiwrapper/gradle.properties).
 - Tag the repository (with a tag following [semver](https://semver.org/),
   format `v[0-9]+.[0-9]+.[0-9]+)`).
 - Push the tag to the repository.

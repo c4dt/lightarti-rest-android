@@ -3,7 +3,7 @@
 Android wrapper based on [arti](https://gitlab.torproject.org/tpo/core/arti), "An
 implementation of Tor, in Rust".
 
-> :warning: **Warning: arti-android is not secure in all situations** Arti-android builds on top of [arti-rest]((https://github.com/c4dt/arti-rest), which modifies several core parts of `arti`. It therefore does not have the same security guarantees as arti or the stock Tor client would. Before integrating this library check the reliability considerations in the [arti-rest]((https://github.com/c4dt/arti-rest) repository to make sure that the security offered by this library is sufficient for your use case. In case of doubt, contact us in this repo. We'll be happy to discuss enhancements and limitations of our solution.
+> :warning: **Warning: arti-android is not secure in all situations** Arti-android builds on top of [arti-rest](https://github.com/c4dt/arti-rest), which modifies several core parts of `arti`. It therefore does not have the same security guarantees as arti or the stock Tor client would. Before integrating this library check the reliability considerations in the [arti-rest](https://github.com/c4dt/arti-rest) repository to make sure that the security offered by this library is sufficient for your use case. In case of doubt, contact us in this repo. We'll be happy to discuss enhancements and limitations of our solution.
 
 Library releases are published on Maven.
 To use the library in your project, add the following to your `build.gradle`:

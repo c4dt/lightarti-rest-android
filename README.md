@@ -3,7 +3,17 @@
 Android wrapper based on [arti](https://gitlab.torproject.org/tpo/core/arti), "An
 implementation of Tor, in Rust".
 
-> :warning: **Warning: arti-android is not secure in all situations** Arti-android builds on top of [arti-rest](https://github.com/c4dt/arti-rest), which modifies several core parts of `arti`. It therefore does not have the same security guarantees as arti or the stock Tor client would. Before integrating this library check the reliability considerations in the [arti-rest](https://github.com/c4dt/arti-rest) repository to make sure that the security offered by this library is sufficient for your use case. In case of doubt, contact us in this repo. We'll be happy to discuss enhancements and limitations of our solution.
+> :warning: **Warning: arti-android is not secure in all situations**
+> Arti-android builds on top of [arti-rest](https://github.com/c4dt/arti-rest),
+> which modifies several core parts of `arti`. It therefore does not have the
+> same security guarantees as arti or the stock Tor client would. Before
+> integrating this library check the reliability considerations in the
+> [arti-rest](https://github.com/c4dt/arti-rest) repository to make sure that
+> the security offered by this library is sufficient for your use case. In case
+> of doubt, contact us in this repo. We'll be happy to discuss enhancements and
+> limitations of our solution.
+
+## Using the wrapper
 
 Library releases are published on Maven.
 To use the library in your project, add the following to your `build.gradle`:
@@ -12,9 +22,19 @@ To use the library in your project, add the following to your `build.gradle`:
 implementation 'io.github.c4dt:artiwrapper:<version>'
 ```
 
+In the repository, you can find:
+
+- An [example
+  application](https://github.com/c4dt/arti-android/blob/main/artiwrapper/app/src/main/java/org/c4dt/myapplication/MainActivity.java)
+  that uses the [documented wrapper
+  API](https://github.com/c4dt/arti-android/blob/main/artiwrapper/src/main/java/org/c4dt/artiwrapper/TorLibApi.java).
+- An [instrumented test
+  suite](https://github.com/c4dt/arti-android/blob/main/artiwrapper/src/androidTest/java/org/c4dt/artiwrapper/JniTest.java)
+  to run on emulators and devices.
+
 ## Releasing on Maven
 
-When a new release should be published on Maven, use the following steps:
+In order to publish a new release on Maven, follow these steps:
 
 - Update `VERSION_NAME` and `VERSION_CODE` in the [properties
   file](https://github.com/c4dt/arti-android/blob/main/artiwrapper/gradle.properties).
@@ -36,12 +56,3 @@ When a new release should be published on Maven, use the following steps:
 - After some time, the release will be available in
   [Maven](https://search.maven.org/search?q=artiwrapper), with Group ID
   `io.github.c4dt` and Artifact ID `artiwrapper`.
-
-**WARNING**
-
-- Arti is **not ready for production use**; see
-  [here](https://gitlab.torproject.org/tpo/core/arti#status) for Arti's current
-  status.
-- This wrapper uses a [modified](https://github.com/c4dt/arti-rest) version of
-  Arti. In particular, an extension is that it allows to sideload the nodes
-  information (consensus, microdescriptors).

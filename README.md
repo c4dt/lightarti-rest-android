@@ -15,7 +15,8 @@ implementation of Tor, in Rust".
 
 ## Using the wrapper
 
-Library releases are published on Maven.
+Library releases are published on
+[Maven](https://search.maven.org/search?q=artiwrapper).
 To use the library in your project, add the following to your `build.gradle`:
 
 ```

@@ -15,6 +15,18 @@ public class TorLibApi {
 
     private final Executor executor;
 
+    public static final String CONSENSUS_FILENAME = "consensus.txt";
+    public static final String MICRODESCRIPTORS_FILENAME = "microdescriptors.txt";
+    public static final String AUTHORITY_FILENAME = "authority.txt";
+    public static final String CERTIFICATE_FILENAME = "certificate.txt";
+
+    public static final String[] CACHE_FILENAMES = new String[]{
+            CONSENSUS_FILENAME,
+            MICRODESCRIPTORS_FILENAME,
+            AUTHORITY_FILENAME,
+            CERTIFICATE_FILENAME,
+    };
+
     /**
      * Enumeration type for an HTTP method.
      */

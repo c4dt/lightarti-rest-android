@@ -38,9 +38,6 @@ public class JniTest {
 
     private static final String TAG = "ArtiTest";
 
-    private static final String CONSENSUS_FILENAME = "consensus.txt";
-    private static final String MICRODESCRIPTORS_FILENAME = "microdescriptors.txt";
-
     private String dummyCacheDir = "dummy cache dir";
     private TorLibApi.TorRequestMethod dummyMethod = TorLibApi.TorRequestMethod.GET;
     private String dummyUrl = "https://example.com";
@@ -56,7 +53,7 @@ public class JniTest {
     private void copyFiles(AssetManager am, File cacheDir) throws IOException {
         Log.d(TAG, "assets: " + Arrays.toString(am.list("")));
 
-        for (String filename: new String[]{CONSENSUS_FILENAME, MICRODESCRIPTORS_FILENAME}) {
+        for (String filename: TorLibApi.CACHE_FILENAMES) {
             File dest = new File(cacheDir, filename);
 
             InputStream is = am.open(filename);
@@ -121,7 +118,7 @@ public class JniTest {
         thrown.expect(TorLibException.class);
         thrown.expectMessage(containsString("Failed to read the consensus"));
 
-        File f = new File(folder.getRoot(), CONSENSUS_FILENAME);
+        File f = new File(folder.getRoot(), TorLibApi.CONSENSUS_FILENAME);
         f.delete();
 
         api.syncTorRequest(cacheDir, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
@@ -132,7 +129,29 @@ public class JniTest {
         thrown.expect(TorLibException.class);
         thrown.expectMessage(containsString("Failed to read microdescriptors"));
 
-        File f = new File(folder.getRoot(), MICRODESCRIPTORS_FILENAME);
+        File f = new File(folder.getRoot(), TorLibApi.MICRODESCRIPTORS_FILENAME);
+        f.delete();
+
+        api.syncTorRequest(cacheDir, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+    }
+
+    @Test
+    public void missingAuthority() throws TorLibException {
+        thrown.expect(TorLibException.class);
+        thrown.expectMessage(containsString("Failed to read authority"));
+
+        File f = new File(folder.getRoot(), TorLibApi.AUTHORITY_FILENAME);
+        f.delete();
+
+        api.syncTorRequest(cacheDir, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+    }
+
+    @Test
+    public void missingCertificate() throws TorLibException {
+        thrown.expect(TorLibException.class);
+        thrown.expectMessage(containsString("Failed to read the certificate"));
+
+        File f = new File(folder.getRoot(), TorLibApi.CERTIFICATE_FILENAME);
         f.delete();
 
         api.syncTorRequest(cacheDir, dummyMethod, dummyUrl, dummyHeaders, dummyBody);

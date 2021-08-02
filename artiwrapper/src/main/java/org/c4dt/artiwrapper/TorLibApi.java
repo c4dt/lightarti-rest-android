@@ -15,6 +15,25 @@ public class TorLibApi {
 
     private final Executor executor;
 
+    public static final String CONSENSUS_FILENAME = "consensus.txt";
+    public static final String MICRODESCRIPTORS_FILENAME = "microdescriptors.txt";
+    public static final String AUTHORITY_FILENAME = "authority.txt";
+    public static final String CERTIFICATE_FILENAME = "certificate.txt";
+
+    /**
+     * Files to pass via the directory cache when calling
+     * {@link #asyncTorRequest(String, TorRequestMethod, String, Map, byte[], TorLibCallback)}
+     * or {@link #syncTorRequest(String, TorRequestMethod, String, Map, byte[])}.
+     * See <a href=">https://github.com/c4dt/arti-rest/blob/main/tools/README.md">
+     *     <code>arti-rest</code> tools</a> for details.
+     */
+    public static final String[] CACHE_FILENAMES = new String[]{
+            CONSENSUS_FILENAME,
+            MICRODESCRIPTORS_FILENAME,
+            AUTHORITY_FILENAME,
+            CERTIFICATE_FILENAME,
+    };
+
     /**
      * Enumeration type for an HTTP method.
      */
@@ -103,7 +122,7 @@ public class TorLibApi {
      * Perform an asynchronous request. The <code>cacheDir</code> argument is used in two ways:
      * <ul>
      *     <li>by the library for the creation of temporary files</li>
-     *     <li>to pass the <code>consensus.txt</code> and <code>microdescriptors.txt</code> files to the library</li>
+     *     <li>to pass several files to the library (see {@link #CACHE_FILENAMES})</li>
      * </ul>
      * These files must be copied to the given directory before calling this method.
      *
@@ -131,7 +150,7 @@ public class TorLibApi {
      * Perform a synchronous (blocking) request. The <code>cacheDir</code> argument is used in two ways:
      * <ul>
      *     <li>by the library for the creation of temporary files</li>
-     *     <li>to pass the <code>consensus.txt</code> and <code>microdescriptors.txt</code> files to the library</li>
+     *     <li>to pass several files to the library (see {@link #CACHE_FILENAMES})</li>
      * </ul>
      * These files must be copied to the given directory before calling this method.
      *

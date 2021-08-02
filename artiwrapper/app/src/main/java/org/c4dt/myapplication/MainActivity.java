@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
 
     private void copyFiles(AssetManager am, File cacheDir) throws IOException {
-        for (String filename: new String[]{"consensus.txt", "microdescriptors.txt"}) {
+        for (String filename: TorLibApi.CACHE_FILENAMES) {
             File dest = new File(cacheDir, filename);
             InputStream is = am.open(filename);
             FileOutputStream fos = new FileOutputStream(dest);

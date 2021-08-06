@@ -57,3 +57,17 @@ In order to publish a new release on Maven, follow these steps:
 - After some time, the release will be available in
   [Maven](https://search.maven.org/search?q=artiwrapper), with Group ID
   `io.github.c4dt` and Artifact ID `artiwrapper`.
+
+# Contributors
+
+`lightarti-rest-android` is maintained by the [Center for Digital Trust](https://c4dt.org/). The following people contributed to the implementation of `lightarti-rest`:
+
+- Linus Gasser, C4DT
+- Valérian Rousset, C4DT
+- Christian Grigis, C4DT
+- Laurent Girod, SPRING Lab, EPFL
+
+Analysis and design by:
+
+- Wouter Lueks, SPRING Lab, EPFL
+- Carmela Troncoso, SPRING Lab, EPFL

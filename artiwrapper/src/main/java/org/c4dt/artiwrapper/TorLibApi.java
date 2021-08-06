@@ -24,8 +24,8 @@ public class TorLibApi {
      * Files to pass via the directory cache when calling
      * {@link #asyncTorRequest(String, TorRequestMethod, String, Map, byte[], TorLibCallback)}
      * or {@link #syncTorRequest(String, TorRequestMethod, String, Map, byte[])}.
-     * See <a href=">https://github.com/c4dt/arti-rest/blob/main/tools/README.md">
-     *     <code>arti-rest</code> tools</a> for details.
+     * See <a href=">https://github.com/c4dt/lightarti-rest/blob/main/tools/README.md">
+     *     <code>lightarti-rest</code> tools</a> for details.
      */
     public static final String[] CACHE_FILENAMES = new String[]{
             CONSENSUS_FILENAME,

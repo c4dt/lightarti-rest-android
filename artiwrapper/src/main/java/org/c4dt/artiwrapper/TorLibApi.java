@@ -160,7 +160,7 @@ public class TorLibApi {
      * @param headers the headers for the request
      * @param body the body for the request
      * @return the request response
-     * @throws TorLibException
+     * @throws TorLibException an error occurred during the request execution
      */
     public HttpResponse syncTorRequest(String cacheDir, TorRequestMethod method, String url, Map<String, List<String>> headers, byte[] body)
             throws TorLibException {

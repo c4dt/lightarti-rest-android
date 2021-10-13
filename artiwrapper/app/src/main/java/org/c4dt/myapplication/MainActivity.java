@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -29,8 +30,6 @@ import java.util.Map;
  */
 public class MainActivity extends AppCompatActivity {
     static final String TAG = "ArtiApp";
-
-    private ActivityMainBinding binding;
 
     private void copyFiles(AssetManager am, File cacheDir) throws IOException {
         for (String filename: TorLibApi.CACHE_FILENAMES) {
@@ -56,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         Handler handler = HandlerCompat.createAsync(Looper.getMainLooper());
 
@@ -93,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "   headers: " + resp.getHeaders());
                         Log.d(TAG, "   body: " + new String(resp.getBody()));
 
-                        handler.post(() -> tv.setText(String.format(
+                        handler.post(() -> tv.setText(String.format(Locale.ENGLISH,
                                 "Result received [status = %d]:\n\n%s", resp.getStatus(), new String(resp.getBody()))));
                     } else {
                         Exception e = ((TorLibApi.TorRequestResult.Error) result).getError();

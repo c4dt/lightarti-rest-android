@@ -34,15 +34,14 @@ import static org.junit.Assert.fail;
 public class JniTest {
     private TorLibApi api;
     private String cacheDir;
-    private AssetManager am;
 
     private static final String TAG = "ArtiTest";
 
-    private String dummyCacheDir = "dummy cache dir";
-    private TorLibApi.TorRequestMethod dummyMethod = TorLibApi.TorRequestMethod.GET;
-    private String dummyUrl = "https://example.com";
-    private Map<String, List<String>> dummyHeaders = new HashMap<>();
-    private byte[] dummyBody = "dummy body".getBytes();
+    private final String dummyCacheDir = "dummy cache dir";
+    private final TorLibApi.TorRequestMethod dummyMethod = TorLibApi.TorRequestMethod.GET;
+    private final String dummyUrl = "https://example.com";
+    private final Map<String, List<String>> dummyHeaders = new HashMap<>();
+    private final byte[] dummyBody = "dummy body".getBytes();
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -272,7 +271,7 @@ public class JniTest {
     public void syncGet() {
         try {
             HttpResponse resp = api.syncTorRequest(cacheDir,
-                    TorLibApi.TorRequestMethod.GET, "https://www.c4dt.org", new HashMap(), new byte[]{});
+                    TorLibApi.TorRequestMethod.GET, "https://www.c4dt.org", new HashMap<>(), new byte[]{});
 
             Log.d(TAG, "Response from GET: ");
             Log.d(TAG, "   status: " + resp.getStatus());

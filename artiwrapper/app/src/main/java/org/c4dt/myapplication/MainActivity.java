@@ -100,7 +100,8 @@ public class MainActivity extends AppCompatActivity {
         tv.setText("Downloading cache files...");
         try {
             // Download cache files from the C4DT GitHub release
-            downloadFiles("https://github.com/c4dt/lightarti-directory/releases/latest/download/directory-cache.tgz", cacheDir.getPath()).get();
+            downloadFiles("https://github.com/c4dt/lightarti-directory/releases/latest/download/directory-cache.tgz",
+                    cacheDir.getPath()).get();
             Log.d(TAG, "Files downloaded successfully");
         } catch (Exception e) {
             Log.e(TAG, "Failed to download files: " + e);

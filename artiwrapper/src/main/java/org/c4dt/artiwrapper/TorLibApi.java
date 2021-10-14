@@ -25,7 +25,7 @@ public class TorLibApi {
      * {@link #asyncTorRequest(String, TorRequestMethod, String, Map, byte[], TorLibCallback)}
      * or {@link #syncTorRequest(String, TorRequestMethod, String, Map, byte[])}.
      * See <a href=">https://github.com/c4dt/lightarti-rest/blob/main/tools/README.md">
-     *     <code>lightarti-rest</code> tools</a> for details.
+     * <code>lightarti-rest</code> tools</a> for details.
      */
     public static final String[] CACHE_FILENAMES = new String[]{
             CONSENSUS_FILENAME,
@@ -49,7 +49,8 @@ public class TorLibApi {
      * Result of am asynchronous request, passed to the callback.
      */
     public static class TorRequestResult {
-        private TorRequestResult(){}
+        private TorRequestResult() {
+        }
 
         /**
          * Success result.
@@ -127,10 +128,10 @@ public class TorLibApi {
      * These files must be copied to the given directory before calling this method.
      *
      * @param cacheDir the cache directory path
-     * @param method the HTTP method for the request
-     * @param url the URL for the request
-     * @param headers the headers for the request
-     * @param body the body for the request
+     * @param method   the HTTP method for the request
+     * @param url      the URL for the request
+     * @param headers  the headers for the request
+     * @param body     the body for the request
      * @param callback the callback which will receive the request result
      */
     public void asyncTorRequest(
@@ -155,10 +156,10 @@ public class TorLibApi {
      * These files must be copied to the given directory before calling this method.
      *
      * @param cacheDir the cache directory path
-     * @param method the HTTP method for the request
-     * @param url the URL for the request
-     * @param headers the headers for the request
-     * @param body the body for the request
+     * @param method   the HTTP method for the request
+     * @param url      the URL for the request
+     * @param headers  the headers for the request
+     * @param body     the body for the request
      * @return the request response
      * @throws TorLibException an error occurred during the request execution
      */
@@ -178,6 +179,7 @@ public class TorLibApi {
     public native String hello(String who);
 
     private static native void initLogger();
+
     private native HttpResponse torRequest(String cacheDir, String method, String url, Map<String, List<String>> headers, byte[] body)
             throws TorLibException;
 }

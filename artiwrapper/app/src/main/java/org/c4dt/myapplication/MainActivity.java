@@ -1,29 +1,38 @@
 package org.c4dt.myapplication;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.os.HandlerCompat;
-
-import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.os.HandlerCompat;
+
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.c4dt.artiwrapper.HttpResponse;
 import org.c4dt.artiwrapper.TorLibApi;
 import org.c4dt.myapplication.databinding.ActivityMainBinding;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Simple example application showing how to use the Arti wrapper.
@@ -31,24 +40,48 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     static final String TAG = "ArtiApp";
 
-    private void copyFiles(AssetManager am, File cacheDir) throws IOException {
-        for (String filename: TorLibApi.CACHE_FILENAMES) {
-            File dest = new File(cacheDir, filename);
-            InputStream is = am.open(filename);
-            FileOutputStream fos = new FileOutputStream(dest);
+    /**
+     * Example function to downloaded the required cache files from a URL.
+     * The resource at the URL is expected to be a gzipped tar archive containing
+     * all the files within the root directory.
+     *
+     * @param urlString     the URL of the archive
+     * @param destDirString the path where the contents of the archive are to be extracted
+     * @return a Future wrapping the download execution
+     */
+    private Future<Void> downloadFiles(String urlString, String destDirString) {
+        // Execute download in a thread
+        ExecutorService executor = Executors.newSingleThreadExecutor();
 
-            byte[] buf = new byte[1024];
-            int nbRead;
+        return executor.submit(() -> {
+            URL url = new URL(urlString);
+            HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
+            File destDir = new File(destDirString);
 
-            while ((nbRead = is.read(buf)) != -1) {
-                fos.write(buf, 0, nbRead);
+            try (InputStream uin = urlConnection.getInputStream();
+                 InputStream buin = new BufferedInputStream(uin);
+                 InputStream gzin = new GzipCompressorInputStream(buin);
+                 ArchiveInputStream ain = new TarArchiveInputStream(gzin)) {
+                byte[] buf = new byte[1024];
+
+                ArchiveEntry entry;
+                while ((entry = ain.getNextEntry()) != null) {
+                    // Skip directories
+                    if (entry.isDirectory()) continue;
+
+                    File destFile = new File(destDir, entry.getName());
+                    int nbRead;
+                    try (FileOutputStream out = new FileOutputStream(destFile)) {
+                        while ((nbRead = ain.read(buf)) != -1) {
+                            out.write(buf, 0, nbRead);
+                        }
+                    }
+                    Log.d(TAG, "Extracted file: " + destFile.getName());
+                }
             }
 
-            is.close();
-            fos.close();
-
-            Log.d(TAG, "Copied \"" + filename + "\"");
-        }
+            return null;
+        });
     }
 
     @Override
@@ -64,10 +97,13 @@ public class MainActivity extends AppCompatActivity {
         File cacheDir = getApplicationContext().getCacheDir();
         Log.d(TAG, "cacheDir = " + cacheDir.toString());
 
+        tv.setText("Downloading cache files...");
         try {
-            copyFiles(getApplicationContext().getAssets(), cacheDir);
-        } catch (IOException e) {
-            Log.d(TAG, "Failed to copy files: " + e);
+            // Download cache files from the C4DT GitHub release
+            downloadFiles("https://github.com/c4dt/lightarti-directory/releases/latest/download/directory-cache.tgz", cacheDir.getPath()).get();
+            Log.d(TAG, "Files downloaded successfully");
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to download files: " + e);
         }
 
         TorLibApi torLibApi = new TorLibApi();
@@ -81,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
         tv.setText("Starting request...");
 
-        torLibApi.asyncTorRequest(cacheDir.toString(),
+        torLibApi.asyncTorRequest(cacheDir.getPath(),
                 TorLibApi.TorRequestMethod.POST, "https://httpbin.org/post", headers, body,
                 result -> {
                     if (result instanceof TorLibApi.TorRequestResult.Success) {

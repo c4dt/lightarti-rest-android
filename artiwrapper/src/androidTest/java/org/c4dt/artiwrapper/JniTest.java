@@ -1,12 +1,15 @@
 package org.c4dt.artiwrapper;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import android.content.res.AssetManager;
 import android.util.Log;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,9 +29,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class JniTest {
@@ -52,7 +52,7 @@ public class JniTest {
     private void copyFiles(AssetManager am, File cacheDir) throws IOException {
         Log.d(TAG, "assets: " + Arrays.toString(am.list("")));
 
-        for (String filename: TorLibApi.CACHE_FILENAMES) {
+        for (String filename : TorLibApi.CACHE_FILENAMES) {
             File dest = new File(cacheDir, filename);
 
             InputStream is = am.open(filename);
@@ -243,7 +243,7 @@ public class JniTest {
                 TorLibApi.TorRequestMethod.POST, "https://httpbin.org/post", headers, body,
                 result -> {
                     if (result instanceof TorLibApi.TorRequestResult.Success) {
-                        HttpResponse resp = ((TorLibApi.TorRequestResult.Success) result).getResult();
+                        HttpResponse resp = ((TorLibApi.TorRequestResult.Success<HttpResponse>) result).getResult();
 
                         Log.d(TAG, "Response from POST: ");
                         Log.d(TAG, "   status: " + resp.getStatus());
@@ -253,7 +253,7 @@ public class JniTest {
 
                         response.set(resp);
                     } else {
-                        Exception e = ((TorLibApi.TorRequestResult.Error) result).getError();
+                        Exception e = ((TorLibApi.TorRequestResult.Error<HttpResponse>) result).getError();
                         Log.d(TAG, "!!! Exception: " + e);
                         fail();
                     }
@@ -284,5 +284,45 @@ public class JniTest {
             Log.d(TAG, "!!! Exception: " + e);
             fail();
         }
+    }
+
+    @Test
+    public void asyncDownloadFullCache() throws InterruptedException {
+        final CountDownLatch signal = new CountDownLatch(1);
+
+        api.downloadFullCache(TorLibApi.DIRECTORY_CACHE_C4DT, cacheDir,
+                result -> {
+                    if (result instanceof TorLibApi.TorRequestResult.Success) {
+                    } else {
+                        Exception e = ((TorLibApi.TorRequestResult.Error<Void>) result).getError();
+                        Log.d(TAG, "!!! Exception: " + e);
+                        fail();
+                    }
+
+                    signal.countDown();
+                }
+        );
+
+        signal.await(120, TimeUnit.SECONDS);
+    }
+
+    @Test
+    public void asyncDownloadChurnFile() throws InterruptedException {
+        final CountDownLatch signal = new CountDownLatch(1);
+
+        api.downloadChurnFile(TorLibApi.CHURN_CACHE_C4DT, cacheDir,
+                result -> {
+                    if (result instanceof TorLibApi.TorRequestResult.Success) {
+                    } else {
+                        Exception e = ((TorLibApi.TorRequestResult.Error<Void>) result).getError();
+                        Log.d(TAG, "!!! Exception: " + e);
+                        fail();
+                    }
+
+                    signal.countDown();
+                }
+        );
+
+        signal.await(120, TimeUnit.SECONDS);
     }
 }

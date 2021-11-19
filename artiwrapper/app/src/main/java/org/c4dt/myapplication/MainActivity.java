@@ -55,11 +55,21 @@ public class MainActivity extends AppCompatActivity {
         torLibApi.updateCache(cacheDir.getPath(),
                 result -> {
                     if (result instanceof TorLibApi.TorRequestResult.Success) {
-                        Log.d(TAG, "Cache updated successfully");
-                        display("Cache updated successfully");
+                        TorLibApi.CacheUpdateStatus status = ((TorLibApi.TorRequestResult.Success<TorLibApi.CacheUpdateStatus>) result).getResult();
+                        switch (status) {
+                            case CACHE_IS_UP_TO_DATE:
+                                display("Cache is already up to date");
+                                break;
+                            case DOWNLOADED_CHURN_FILE:
+                                display("Downloaded churn file");
+                                break;
+                            case DOWNLOADED_FULL_CACHE:
+                                display("Downloaded full cache");
+                                break;
+                        }
                         makeRequest();
                     } else {
-                        Exception e = ((TorLibApi.TorRequestResult.Error<Void>) result).getError();
+                        Exception e = ((TorLibApi.TorRequestResult.Error<TorLibApi.CacheUpdateStatus>) result).getError();
                         Log.e(TAG, "Failed to update cache: " + e);
                         display("Failed to update cache: " + e);
                     }

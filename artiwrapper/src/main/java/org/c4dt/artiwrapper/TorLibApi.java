@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -50,6 +51,7 @@ public class TorLibApi {
             MICRODESCRIPTORS_FILENAME,
             AUTHORITY_FILENAME,
             CERTIFICATE_FILENAME,
+            CHURN_FILENAME,
     };
 
     /**
@@ -137,18 +139,19 @@ public class TorLibApi {
         this.executor = executor;
     }
 
-    /**
-     * Update the cache files using the C4DT releases.
-     * Examine the current files, and determine whether the full archive, only the churn file,
-     * or nothing needs to be downloaded.
-     *
-     * @param destDirString the path where the contents of the archive are to be extracted
-     * @param callback      the callback which will be called when the update is done
-     */
-    public void updateCache(String destDirString, final TorLibCallback<Void> callback) {
-        Log.d(TAG, "Updating cache");
+    private static class CacheState {
+        public final boolean udescIsCurrent;
+        public final boolean churnFileIsCurrent;
 
-        Calendar now = Calendar.getInstance();
+        public CacheState(boolean udescIsCurrent, boolean churnFileIsCurrent) {
+            this.udescIsCurrent = udescIsCurrent;
+            this.churnFileIsCurrent = churnFileIsCurrent;
+        }
+    }
+
+    private CacheState getCacheState(String destDirString) {
+        // Use UK locale to have Monday as the first day of the week
+        Calendar now = Calendar.getInstance(Locale.UK);
 
         int currentYear = now.get(Calendar.YEAR);
         int currentDayOfYear = now.get(Calendar.DAY_OF_YEAR);
@@ -157,9 +160,20 @@ public class TorLibApi {
         boolean udescIsCurrent = false;
         boolean churnFileIsCurrent = false;
 
-        File udescFile = new File(destDirString, MICRODESCRIPTORS_FILENAME);
-        if (udescFile.exists()) {
-            Calendar udescTime = Calendar.getInstance();
+        boolean missingFiles = false;
+        for (String fileName : CACHE_FILENAMES) {
+            // Churn file is optional
+            if (fileName.equals(CHURN_FILENAME)) continue;
+
+            if (!new File(destDirString, fileName).exists()) {
+                Log.d(TAG, String.format("Cache is missing file \"%s\"", fileName));
+                missingFiles = true;
+            }
+        }
+
+        if (!missingFiles) {
+            File udescFile = new File(destDirString, MICRODESCRIPTORS_FILENAME);
+            Calendar udescTime = Calendar.getInstance(Locale.UK);
             udescTime.setTimeInMillis(udescFile.lastModified());
             if ((currentYear == udescTime.get(Calendar.YEAR)) &&
                     (currentWeekOfYear == udescTime.get(Calendar.WEEK_OF_YEAR))) {
@@ -167,7 +181,7 @@ public class TorLibApi {
 
                 File churnFile = new File(destDirString, CHURN_FILENAME);
                 if (churnFile.exists()) {
-                    Calendar churnTime = Calendar.getInstance();
+                    Calendar churnTime = Calendar.getInstance(Locale.UK);
                     churnTime.setTimeInMillis(churnFile.lastModified());
                     if ((currentYear == churnTime.get(Calendar.YEAR)) &&
                             (currentDayOfYear == churnTime.get(Calendar.DAY_OF_YEAR))) {
@@ -177,14 +191,37 @@ public class TorLibApi {
                     Log.d(TAG, "Churn file does not exist");
                 }
             }
-        } else {
-            Log.d(TAG, "Microdescriptors file does not exist");
         }
 
-        if (udescIsCurrent) {
-            if (churnFileIsCurrent) {
-                Log.d(TAG, "Churn file is current -- cache is up to date");
-                callback.onComplete(new TorRequestResult.Success<>(null));
+        return new CacheState(udescIsCurrent, churnFileIsCurrent);
+    }
+
+    /**
+     * Status of the cache update process, indicating what actions were taken.
+     */
+    public enum CacheUpdateStatus {
+        CACHE_IS_UP_TO_DATE,
+        DOWNLOADED_CHURN_FILE,
+        DOWNLOADED_FULL_CACHE,
+    }
+
+    /**
+     * Update the cache files using the C4DT releases.
+     * Examine the current files, and determine whether the full archive, only the churn file,
+     * or nothing needs to be downloaded.
+     *
+     * @param destDirString the path where the contents of the archive are to be extracted
+     * @param callback      the callback which will be called when the update is done
+     */
+    public void updateCache(String destDirString, final TorLibCallback<CacheUpdateStatus> callback) {
+        Log.d(TAG, "Updating cache");
+
+        CacheState cacheState = getCacheState(destDirString);
+
+        if (cacheState.udescIsCurrent) {
+            if (cacheState.churnFileIsCurrent) {
+                Log.d(TAG, "Churn file is current -- cache is already up to date");
+                callback.onComplete(new TorRequestResult.Success<>(CacheUpdateStatus.CACHE_IS_UP_TO_DATE));
             } else {
                 Log.d(TAG, "Microdescriptors file is current -- download churn file only");
                 downloadChurnFile(CHURN_CACHE_C4DT, destDirString, callback);
@@ -213,8 +250,8 @@ public class TorLibApi {
      * @param destDirString the path where the contents of the archive are to be extracted
      * @param callback      the callback which will be called when the download is complete
      */
-    public void downloadChurnFile(String urlString, String destDirString,
-                                  final TorLibCallback<Void> callback) {
+    private void downloadChurnFile(String urlString, String destDirString,
+                                   final TorLibCallback<CacheUpdateStatus> callback) {
         executor.execute(() -> {
             try {
                 URL url = new URL(urlString);
@@ -225,7 +262,7 @@ public class TorLibApi {
                     copyFile(uin, new File(destDir, CHURN_FILENAME));
                 }
 
-                callback.onComplete(new TorRequestResult.Success<>(null));
+                callback.onComplete(new TorRequestResult.Success<>(CacheUpdateStatus.DOWNLOADED_CHURN_FILE));
             } catch (Exception e) {
                 callback.onComplete(new TorRequestResult.Error<>(e));
             }
@@ -241,8 +278,8 @@ public class TorLibApi {
      * @param destDirString the path where the contents of the archive are to be extracted
      * @param callback      the callback which will be called when the download is complete
      */
-    public void downloadFullCache(String urlString, String destDirString,
-                                  final TorLibCallback<Void> callback) {
+    private void downloadFullCache(String urlString, String destDirString,
+                                   final TorLibCallback<CacheUpdateStatus> callback) {
         executor.execute(() -> {
             try {
                 URL url = new URL(urlString);
@@ -263,7 +300,7 @@ public class TorLibApi {
                     }
                 }
 
-                callback.onComplete(new TorRequestResult.Success<>(null));
+                callback.onComplete(new TorRequestResult.Success<>(CacheUpdateStatus.DOWNLOADED_FULL_CACHE));
             } catch (Exception e) {
                 callback.onComplete(new TorRequestResult.Error<>(e));
             }

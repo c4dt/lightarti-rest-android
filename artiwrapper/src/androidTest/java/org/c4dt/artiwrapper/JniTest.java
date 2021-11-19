@@ -21,10 +21,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -286,15 +289,18 @@ public class JniTest {
         }
     }
 
-    @Test
-    public void asyncDownloadFullCache() throws InterruptedException {
+    private TorLibApi.CacheUpdateStatus execUpdateCache() throws InterruptedException {
         final CountDownLatch signal = new CountDownLatch(1);
 
-        api.downloadFullCache(TorLibApi.DIRECTORY_CACHE_C4DT, cacheDir,
+        AtomicReference<TorLibApi.CacheUpdateStatus> status = new AtomicReference<>();
+
+        api.updateCache(cacheDir,
                 result -> {
                     if (result instanceof TorLibApi.TorRequestResult.Success) {
+                        TorLibApi.CacheUpdateStatus resp = ((TorLibApi.TorRequestResult.Success<TorLibApi.CacheUpdateStatus>) result).getResult();
+                        status.set(resp);
                     } else {
-                        Exception e = ((TorLibApi.TorRequestResult.Error<Void>) result).getError();
+                        Exception e = ((TorLibApi.TorRequestResult.Error<TorLibApi.CacheUpdateStatus>) result).getError();
                         Log.d(TAG, "!!! Exception: " + e);
                         fail();
                     }
@@ -304,25 +310,53 @@ public class JniTest {
         );
 
         signal.await(120, TimeUnit.SECONDS);
+
+        return status.get();
     }
 
     @Test
-    public void asyncDownloadChurnFile() throws InterruptedException {
-        final CountDownLatch signal = new CountDownLatch(1);
+    public void cacheIsUpToDate() throws InterruptedException {
+        assertEquals(TorLibApi.CacheUpdateStatus.CACHE_IS_UP_TO_DATE, execUpdateCache());
+    }
 
-        api.downloadChurnFile(TorLibApi.CHURN_CACHE_C4DT, cacheDir,
-                result -> {
-                    if (result instanceof TorLibApi.TorRequestResult.Success) {
-                    } else {
-                        Exception e = ((TorLibApi.TorRequestResult.Error<Void>) result).getError();
-                        Log.d(TAG, "!!! Exception: " + e);
-                        fail();
-                    }
+    @Test
+    public void cacheChurnIsObsolete() throws InterruptedException {
+        Calendar cal = Calendar.getInstance();
+        cal.roll(Calendar.DAY_OF_MONTH, -1);
 
-                    signal.countDown();
-                }
-        );
+        File f = new File(cacheDir, TorLibApi.CHURN_FILENAME);
 
-        signal.await(120, TimeUnit.SECONDS);
+        f.setLastModified(cal.getTimeInMillis());
+        assertEquals(TorLibApi.CacheUpdateStatus.DOWNLOADED_CHURN_FILE, execUpdateCache());
+
+        f.delete();
+        assertEquals(TorLibApi.CacheUpdateStatus.DOWNLOADED_CHURN_FILE, execUpdateCache());
+    }
+
+    @Test
+    public void cacheMicroDescIsObsolete() throws InterruptedException {
+        // Use UK locale to have Monday as the first day of the week
+        Calendar cal = Calendar.getInstance(Locale.UK);
+
+        // Roll to last day of previous week
+        int currentWeek = cal.get(Calendar.WEEK_OF_MONTH);
+        while (cal.get(Calendar.WEEK_OF_MONTH) == currentWeek) {
+            cal.roll(Calendar.DAY_OF_MONTH, -1);
+        }
+
+        File f = new File(cacheDir, TorLibApi.MICRODESCRIPTORS_FILENAME);
+
+        f.setLastModified(cal.getTimeInMillis());
+        assertEquals(TorLibApi.CacheUpdateStatus.DOWNLOADED_FULL_CACHE, execUpdateCache());
+
+        f.delete();
+        assertEquals(TorLibApi.CacheUpdateStatus.DOWNLOADED_FULL_CACHE, execUpdateCache());
+    }
+
+    @Test
+    public void cacheIsMissingFiles() throws InterruptedException {
+        File f = new File(cacheDir, TorLibApi.CERTIFICATE_FILENAME);
+        f.delete();
+        assertEquals(TorLibApi.CacheUpdateStatus.DOWNLOADED_FULL_CACHE, execUpdateCache());
     }
 }

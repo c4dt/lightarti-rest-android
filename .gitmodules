@@ -1,3 +1,4 @@
 [submodule "rust"]
 	path = rust
 	url = git@github.com:c4dt/lightarti-rest.git
+	branch = cache-client

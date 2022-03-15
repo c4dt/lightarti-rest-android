@@ -27,8 +27,9 @@ In the repository, you can find:
 
 - An [example
   application](https://github.com/c4dt/lightarti-rest-android/blob/main/artiwrapper/app/src/main/java/org/c4dt/myapplication/MainActivity.java)
-  that uses the [documented wrapper
-  API](https://github.com/c4dt/lightarti-rest-android/blob/main/artiwrapper/src/main/java/org/c4dt/artiwrapper/TorLibApi.java).
+  that uses the documented wrapper API:
+  [here](https://github.com/c4dt/lightarti-rest-android/blob/main/artiwrapper/src/main/java/org/c4dt/artiwrapper/TorLibApi.java)
+  and [here](https://github.com/c4dt/lightarti-rest-android/blob/main/artiwrapper/src/main/java/org/c4dt/artiwrapper/Client.java).
 - An [instrumented test
   suite](https://github.com/c4dt/lightarti-rest-android/blob/main/artiwrapper/src/androidTest/java/org/c4dt/artiwrapper/JniTest.java)
   to run on emulators and devices.

@@ -9,8 +9,10 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.os.HandlerCompat;
 
+import org.c4dt.artiwrapper.Client;
 import org.c4dt.artiwrapper.HttpResponse;
 import org.c4dt.artiwrapper.TorLibApi;
+import org.c4dt.artiwrapper.TorLibException;
 import org.c4dt.myapplication.databinding.ActivityMainBinding;
 
 import java.io.File;
@@ -27,7 +29,6 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     static final String TAG = "ArtiApp";
 
-    private TorLibApi torLibApi;
     private TextView tv;
     private Handler handler;
     private File cacheDir;
@@ -49,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         cacheDir = getApplicationContext().getCacheDir();
         Log.d(TAG, "cacheDir = " + cacheDir.toString());
 
-        torLibApi = new TorLibApi();
+        TorLibApi torLibApi = new TorLibApi();
 
         display("Updating cache...");
         torLibApi.updateCache(cacheDir.getPath(),
@@ -67,7 +68,12 @@ public class MainActivity extends AppCompatActivity {
                                 display("Downloaded full cache");
                                 break;
                         }
-                        makeRequest();
+                        try {
+                            makeRequest();
+                        } catch (TorLibException e) {
+                            Log.e(TAG, "Failed to create client: " + e);
+                            display("Failed to create client: " + e);
+                        }
                     } else {
                         Exception e = ((TorLibApi.TorRequestResult.Error<TorLibApi.CacheUpdateStatus>) result).getError();
                         Log.e(TAG, "Failed to update cache: " + e);
@@ -77,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    private void makeRequest() {
+    private void makeRequest() throws TorLibException {
         byte[] body = "key1=val1&key2=val2".getBytes();
         Map<String, List<String>> headers = new HashMap<>();
         headers.put("header-one", Collections.singletonList("hello"));
@@ -87,8 +93,9 @@ public class MainActivity extends AppCompatActivity {
 
         display("Starting request...");
 
-        torLibApi.asyncTorRequest(cacheDir.getPath(),
-                TorLibApi.TorRequestMethod.POST, "https://httpbin.org/post", headers, body,
+        Client client = new Client(cacheDir.getPath());
+        client.asyncTorRequest(
+                Client.TorRequestMethod.POST, "https://httpbin.org/post", headers, body,
                 result -> {
                     if (result instanceof TorLibApi.TorRequestResult.Success) {
                         HttpResponse resp = ((TorLibApi.TorRequestResult.Success<HttpResponse>) result).getResult();
@@ -106,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
 
                         display("Exception: " + e);
                     }
+                    client.close();
                 }
         );
     }

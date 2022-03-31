@@ -5,11 +5,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import android.content.res.AssetManager;
 import android.util.Log;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -19,9 +17,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -52,34 +48,12 @@ public class JniTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private void copyFiles(AssetManager am, File cacheDir) throws IOException {
-        Log.d(TAG, "assets: " + Arrays.toString(am.list("")));
-
-        for (String filename : TorLibApi.CACHE_FILENAMES) {
-            File dest = new File(cacheDir, filename);
-
-            try (InputStream is = am.open(filename);
-                 FileOutputStream fos = new FileOutputStream(dest)) {
-                byte[] buf = new byte[1024];
-                int nbRead;
-
-                while ((nbRead = is.read(buf)) != -1) {
-                    fos.write(buf, 0, nbRead);
-                }
-            }
-
-            Log.d(TAG, "Copied \"" + filename + "\"");
-        }
-    }
-
-
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws IOException, InterruptedException {
         api = new TorLibApi();
         cacheDir = folder.getRoot().toString();
 
-        AssetManager am = InstrumentationRegistry.getInstrumentation().getContext().getAssets();
-        copyFiles(am, folder.getRoot());
+        execUpdateCache();
     }
 
     @Test

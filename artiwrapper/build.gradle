@@ -51,7 +51,7 @@ apply plugin: 'org.mozilla.rust-android-gradle.rust-android'
 
 cargo {
     module = "../rust"
-    libname = "core"
+    libname = "lightarti_rest"
     targets = ["arm", "arm64", "x86", "x86_64"]
     profile = 'release'
 }

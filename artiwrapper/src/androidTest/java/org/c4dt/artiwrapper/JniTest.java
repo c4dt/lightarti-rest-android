@@ -2,13 +2,12 @@ package org.c4dt.artiwrapper;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import android.content.res.AssetManager;
 import android.util.Log;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -18,10 +17,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -41,7 +37,7 @@ public class JniTest {
     private static final String TAG = "ArtiTest";
 
     private final String dummyCacheDir = "dummy cache dir";
-    private final TorLibApi.TorRequestMethod dummyMethod = TorLibApi.TorRequestMethod.GET;
+    private final Client.TorRequestMethod dummyMethod = Client.TorRequestMethod.GET;
     private final String dummyUrl = "https://example.com";
     private final Map<String, List<String>> dummyHeaders = new HashMap<>();
     private final byte[] dummyBody = "dummy body".getBytes();
@@ -52,37 +48,12 @@ public class JniTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private void copyFiles(AssetManager am, File cacheDir) throws IOException {
-        Log.d(TAG, "assets: " + Arrays.toString(am.list("")));
-
-        for (String filename : TorLibApi.CACHE_FILENAMES) {
-            File dest = new File(cacheDir, filename);
-
-            InputStream is = am.open(filename);
-            FileOutputStream fos = new FileOutputStream(dest);
-
-            byte[] buf = new byte[1024];
-            int nbRead;
-
-            while ((nbRead = is.read(buf)) != -1) {
-                fos.write(buf, 0, nbRead);
-            }
-
-            is.close();
-            fos.close();
-
-            Log.d(TAG, "Copied \"" + filename + "\"");
-        }
-    }
-
-
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws IOException, InterruptedException {
         api = new TorLibApi();
         cacheDir = folder.getRoot().toString();
 
-        AssetManager am = InstrumentationRegistry.getInstrumentation().getContext().getAssets();
-        copyFiles(am, folder.getRoot());
+        execUpdateCache();
     }
 
     @Test
@@ -104,7 +75,9 @@ public class JniTest {
         thrown.expectMessage(containsString("cache_dir"));
         thrown.expectMessage(containsString("Null pointer"));
 
-        api.syncTorRequest(null, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+        try (Client client = new Client(null)) {
+            client.syncTorRequest(dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+        }
     }
 
     @Test
@@ -112,29 +85,35 @@ public class JniTest {
         thrown.expect(TorLibException.class);
         thrown.expectMessage(containsString("No such file or directory"));
 
-        api.syncTorRequest(dummyCacheDir, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+        try (Client client = new Client(dummyCacheDir)) {
+            client.syncTorRequest(dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+        }
     }
 
     @Test
     public void missingConsensus() throws TorLibException {
         thrown.expect(TorLibException.class);
-        thrown.expectMessage(containsString("Failed to read the consensus"));
+        thrown.expectMessage(containsString("No such file or directory"));
 
         File f = new File(folder.getRoot(), TorLibApi.CONSENSUS_FILENAME);
-        f.delete();
+        assertTrue(f.delete());
 
-        api.syncTorRequest(cacheDir, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+        try (Client client = new Client(cacheDir)) {
+            client.syncTorRequest(dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+        }
     }
 
     @Test
     public void missingMicroDescriptors() throws TorLibException {
         thrown.expect(TorLibException.class);
-        thrown.expectMessage(containsString("Failed to read microdescriptors"));
+        thrown.expectMessage(containsString("No such file or directory"));
 
         File f = new File(folder.getRoot(), TorLibApi.MICRODESCRIPTORS_FILENAME);
-        f.delete();
+        assertTrue(f.delete());
 
-        api.syncTorRequest(cacheDir, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+        try (Client client = new Client(cacheDir)) {
+            client.syncTorRequest(dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+        }
     }
 
     @Test
@@ -143,20 +122,24 @@ public class JniTest {
         thrown.expectMessage(containsString("Failed to read authority"));
 
         File f = new File(folder.getRoot(), TorLibApi.AUTHORITY_FILENAME);
-        f.delete();
+        assertTrue(f.delete());
 
-        api.syncTorRequest(cacheDir, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+        try (Client client = new Client(cacheDir)) {
+            client.syncTorRequest(dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+        }
     }
 
     @Test
     public void missingCertificate() throws TorLibException {
         thrown.expect(TorLibException.class);
-        thrown.expectMessage(containsString("Failed to read the certificate"));
+        thrown.expectMessage(containsString("No such file or directory"));
 
         File f = new File(folder.getRoot(), TorLibApi.CERTIFICATE_FILENAME);
-        f.delete();
+        assertTrue(f.delete());
 
-        api.syncTorRequest(cacheDir, dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+        try (Client client = new Client(cacheDir)) {
+            client.syncTorRequest(dummyMethod, dummyUrl, dummyHeaders, dummyBody);
+        }
     }
 
     @Test
@@ -165,7 +148,9 @@ public class JniTest {
         thrown.expectMessage(containsString("method"));
         thrown.expectMessage(containsString("Null pointer"));
 
-        api.syncTorRequest(dummyCacheDir, null, dummyUrl, dummyHeaders, dummyBody);
+        try (Client client = new Client(cacheDir)) {
+            client.syncTorRequest(null, dummyUrl, dummyHeaders, dummyBody);
+        }
     }
 
     @Test
@@ -174,7 +159,9 @@ public class JniTest {
         thrown.expectMessage(containsString("url"));
         thrown.expectMessage(containsString("Null pointer"));
 
-        api.syncTorRequest(dummyCacheDir, dummyMethod, null, dummyHeaders, dummyBody);
+        try (Client client = new Client(cacheDir)) {
+            client.syncTorRequest(dummyMethod, null, dummyHeaders, dummyBody);
+        }
     }
 
     @Test
@@ -182,7 +169,9 @@ public class JniTest {
         thrown.expect(TorLibException.class);
         thrown.expectMessage(containsString("invalid"));
 
-        api.syncTorRequest(dummyCacheDir, dummyMethod, "not:/valid", dummyHeaders, dummyBody);
+        try (Client client = new Client(cacheDir)) {
+            client.syncTorRequest(dummyMethod, "not:/valid", dummyHeaders, dummyBody);
+        }
     }
 
     @Test
@@ -191,7 +180,9 @@ public class JniTest {
         thrown.expectMessage(containsString("JMap"));
         thrown.expectMessage(containsString("Null pointer"));
 
-        api.syncTorRequest(dummyCacheDir, dummyMethod, dummyUrl, null, dummyBody);
+        try (Client client = new Client(cacheDir)) {
+            client.syncTorRequest(dummyMethod, dummyUrl, null, dummyBody);
+        }
     }
 
     @Test
@@ -200,7 +191,19 @@ public class JniTest {
         thrown.expectMessage(containsString("byte array"));
         thrown.expectMessage(containsString("Null pointer"));
 
-        api.syncTorRequest(dummyCacheDir, dummyMethod, dummyUrl, dummyHeaders, null);
+        try (Client client = new Client(cacheDir)) {
+            client.syncTorRequest(dummyMethod, dummyUrl, dummyHeaders, null);
+        }
+    }
+
+    @Test
+    public void callAfterClose() throws TorLibException {
+        thrown.expect(TorLibException.class);
+        thrown.expectMessage(containsString("already been closed"));
+
+        Client client = new Client(cacheDir);
+        client.close();
+        client.syncTorRequest(dummyMethod, dummyUrl, dummyHeaders, dummyBody);
     }
 
     @Test
@@ -213,16 +216,18 @@ public class JniTest {
             headers.put("Content-Length", Collections.singletonList(String.valueOf(body.length)));
             headers.put("Content-Type", Collections.singletonList("application/x-www-form-urlencoded"));
 
-            HttpResponse resp = api.syncTorRequest(cacheDir,
-                    TorLibApi.TorRequestMethod.POST, "https://httpbin.org/post", headers, body);
+            try (Client client = new Client(cacheDir)) {
+                HttpResponse resp = client.syncTorRequest(
+                        Client.TorRequestMethod.POST, "https://httpbin.org/post", headers, body);
 
-            Log.d(TAG, "Response from POST: ");
-            Log.d(TAG, "   status: " + resp.getStatus());
-            Log.d(TAG, "   version: " + resp.getVersion());
-            Log.d(TAG, "   headers: " + resp.getHeaders());
-            Log.d(TAG, "   body: " + new String(resp.getBody()));
+                Log.d(TAG, "Response from POST: ");
+                Log.d(TAG, "   status: " + resp.getStatus());
+                Log.d(TAG, "   version: " + resp.getVersion());
+                Log.d(TAG, "   headers: " + resp.getHeaders());
+                Log.d(TAG, "   body: " + new String(resp.getBody()));
 
-            assertEquals(200, resp.getStatus());
+                assertEquals(200, resp.getStatus());
+            }
         } catch (TorLibException e) {
             Log.d(TAG, "!!! Exception: " + e);
             fail();
@@ -230,7 +235,36 @@ public class JniTest {
     }
 
     @Test
-    public void asyncPost() throws InterruptedException {
+    public void syncPostSequential() {
+        try {
+            byte[] body = "key1=val1&key2=val2".getBytes();
+            Map<String, List<String>> headers = new HashMap<>();
+            headers.put("header-one", Collections.singletonList("hello"));
+            headers.put("header-two", Arrays.asList("how", "are", "you"));
+            headers.put("Content-Length", Collections.singletonList(String.valueOf(body.length)));
+            headers.put("Content-Type", Collections.singletonList("application/x-www-form-urlencoded"));
+
+            try (Client client = new Client(cacheDir)) {
+                HttpResponse resp = client.syncTorRequest(
+                        Client.TorRequestMethod.POST, "https://httpbin.org/post", headers, body);
+
+                assertEquals(200, resp.getStatus());
+                Log.w(TAG, "First request completed");
+
+                resp = client.syncTorRequest(
+                        Client.TorRequestMethod.POST, "https://httpbin.org/post", headers, body);
+
+                assertEquals(200, resp.getStatus());
+                Log.w(TAG, "Second request completed");
+            }
+        } catch (TorLibException e) {
+            Log.d(TAG, "!!! Exception: " + e);
+            fail();
+        }
+    }
+
+    @Test
+    public void asyncPost() throws InterruptedException, TorLibException {
         final CountDownLatch signal = new CountDownLatch(1);
 
         byte[] body = "key1=val1&key2=val2".getBytes();
@@ -242,8 +276,9 @@ public class JniTest {
 
         AtomicReference<HttpResponse> response = new AtomicReference<>();
 
-        api.asyncTorRequest(cacheDir,
-                TorLibApi.TorRequestMethod.POST, "https://httpbin.org/post", headers, body,
+        Client client = new Client(cacheDir);
+        client.asyncTorRequest(
+                Client.TorRequestMethod.POST, "https://httpbin.org/post", headers, body,
                 result -> {
                     if (result instanceof TorLibApi.TorRequestResult.Success) {
                         HttpResponse resp = ((TorLibApi.TorRequestResult.Success<HttpResponse>) result).getResult();
@@ -261,28 +296,131 @@ public class JniTest {
                         fail();
                     }
 
+                    client.close();
                     signal.countDown();
                 }
         );
 
-        signal.await(120, TimeUnit.SECONDS);
+        assertTrue(signal.await(120, TimeUnit.SECONDS));
 
         assertEquals(200, response.get().getStatus());
     }
 
     @Test
+    public void asyncPostParallel() throws InterruptedException, TorLibException {
+        // Launch 3 requests, two of them on the same client
+        final CountDownLatch signal = new CountDownLatch(3);
+
+        byte[] body = "key1=val1&key2=val2".getBytes();
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put("header-one", Collections.singletonList("hello"));
+        headers.put("header-two", Arrays.asList("how", "are", "you"));
+        headers.put("Content-Length", Collections.singletonList(String.valueOf(body.length)));
+        headers.put("Content-Type", Collections.singletonList("application/x-www-form-urlencoded"));
+
+        Client client1 = new Client(cacheDir);
+        Client client2 = new Client(cacheDir);
+
+        AtomicReference<HttpResponse> response1 = new AtomicReference<>();
+        client1.asyncTorRequest(
+                Client.TorRequestMethod.POST, "https://httpbin.org/post", headers, body,
+                result -> {
+                    if (result instanceof TorLibApi.TorRequestResult.Success) {
+                        HttpResponse resp = ((TorLibApi.TorRequestResult.Success<HttpResponse>) result).getResult();
+
+                        Log.d(TAG, "[1] Response from POST: ");
+                        Log.d(TAG, "   status: " + resp.getStatus());
+                        Log.d(TAG, "   version: " + resp.getVersion());
+                        Log.d(TAG, "   headers: " + resp.getHeaders());
+                        Log.d(TAG, "   body: " + new String(resp.getBody()));
+
+                        response1.set(resp);
+                    } else {
+                        Exception e = ((TorLibApi.TorRequestResult.Error<HttpResponse>) result).getError();
+                        Log.d(TAG, "!!! Exception: " + e);
+                        fail();
+                    }
+
+                    signal.countDown();
+                }
+        );
+        Log.d(TAG, "First request sent");
+
+        AtomicReference<HttpResponse> response2 = new AtomicReference<>();
+        client2.asyncTorRequest(
+                Client.TorRequestMethod.POST, "https://httpbin.org/post", headers, body,
+                result -> {
+                    if (result instanceof TorLibApi.TorRequestResult.Success) {
+                        HttpResponse resp = ((TorLibApi.TorRequestResult.Success<HttpResponse>) result).getResult();
+
+                        Log.d(TAG, "[2] Response from POST: ");
+                        Log.d(TAG, "   status: " + resp.getStatus());
+                        Log.d(TAG, "   version: " + resp.getVersion());
+                        Log.d(TAG, "   headers: " + resp.getHeaders());
+                        Log.d(TAG, "   body: " + new String(resp.getBody()));
+
+                        response2.set(resp);
+                    } else {
+                        Exception e = ((TorLibApi.TorRequestResult.Error<HttpResponse>) result).getError();
+                        Log.d(TAG, "!!! Exception: " + e);
+                        fail();
+                    }
+
+                    signal.countDown();
+                }
+        );
+        Log.d(TAG, "Second request sent");
+
+        AtomicReference<HttpResponse> response3 = new AtomicReference<>();
+        client1.asyncTorRequest(
+                Client.TorRequestMethod.POST, "https://httpbin.org/post", headers, body,
+                result -> {
+                    if (result instanceof TorLibApi.TorRequestResult.Success) {
+                        HttpResponse resp = ((TorLibApi.TorRequestResult.Success<HttpResponse>) result).getResult();
+
+                        Log.d(TAG, "[3] Response from POST: ");
+                        Log.d(TAG, "   status: " + resp.getStatus());
+                        Log.d(TAG, "   version: " + resp.getVersion());
+                        Log.d(TAG, "   headers: " + resp.getHeaders());
+                        Log.d(TAG, "   body: " + new String(resp.getBody()));
+
+                        response3.set(resp);
+                    } else {
+                        Exception e = ((TorLibApi.TorRequestResult.Error<HttpResponse>) result).getError();
+                        Log.d(TAG, "!!! Exception: " + e);
+                        fail();
+                    }
+
+                    signal.countDown();
+                }
+        );
+        Log.d(TAG, "Third request sent");
+
+        assertTrue(signal.await(120, TimeUnit.SECONDS));
+
+        client1.close();
+        client2.close();
+
+        assertEquals(200, response1.get().getStatus());
+        assertEquals(200, response2.get().getStatus());
+        assertEquals(200, response3.get().getStatus());
+    }
+
+    @Test
     public void syncGet() {
         try {
-            HttpResponse resp = api.syncTorRequest(cacheDir,
-                    TorLibApi.TorRequestMethod.GET, "https://www.c4dt.org", new HashMap<>(), new byte[]{});
+            try (Client client = new Client(cacheDir)) {
+                HttpResponse resp = client.syncTorRequest(
+                        Client.TorRequestMethod.GET, "https://example.com", new HashMap<>(), new byte[]{});
 
-            Log.d(TAG, "Response from GET: ");
-            Log.d(TAG, "   status: " + resp.getStatus());
-            Log.d(TAG, "   version: " + resp.getVersion());
-            Log.d(TAG, "   headers: " + resp.getHeaders());
-            Log.d(TAG, "   body: " + new String(resp.getBody()));
+                Log.d(TAG, "Response from GET: ");
+                Log.d(TAG, "   status: " + resp.getStatus());
+                Log.d(TAG, "   version: " + resp.getVersion());
+                Log.d(TAG, "   headers: " + resp.getHeaders());
+                Log.d(TAG, "   body: " + new String(resp.getBody()));
 
-            assertEquals(200, resp.getStatus());
+                assertEquals(200, resp.getStatus());
+            }
         } catch (TorLibException e) {
             Log.d(TAG, "!!! Exception: " + e);
             fail();
@@ -326,10 +464,10 @@ public class JniTest {
 
         File f = new File(cacheDir, TorLibApi.CHURN_FILENAME);
 
-        f.setLastModified(cal.getTimeInMillis());
+        assertTrue(f.setLastModified(cal.getTimeInMillis()));
         assertEquals(TorLibApi.CacheUpdateStatus.DOWNLOADED_CHURN_FILE, execUpdateCache());
 
-        f.delete();
+        assertTrue(f.delete());
         assertEquals(TorLibApi.CacheUpdateStatus.DOWNLOADED_CHURN_FILE, execUpdateCache());
     }
 
@@ -346,17 +484,17 @@ public class JniTest {
 
         File f = new File(cacheDir, TorLibApi.MICRODESCRIPTORS_FILENAME);
 
-        f.setLastModified(cal.getTimeInMillis());
+        assertTrue(f.setLastModified(cal.getTimeInMillis()));
         assertEquals(TorLibApi.CacheUpdateStatus.DOWNLOADED_FULL_CACHE, execUpdateCache());
 
-        f.delete();
+        assertTrue(f.delete());
         assertEquals(TorLibApi.CacheUpdateStatus.DOWNLOADED_FULL_CACHE, execUpdateCache());
     }
 
     @Test
     public void cacheIsMissingFiles() throws InterruptedException {
         File f = new File(cacheDir, TorLibApi.CERTIFICATE_FILENAME);
-        f.delete();
+        assertTrue(f.delete());
         assertEquals(TorLibApi.CacheUpdateStatus.DOWNLOADED_FULL_CACHE, execUpdateCache());
     }
 }

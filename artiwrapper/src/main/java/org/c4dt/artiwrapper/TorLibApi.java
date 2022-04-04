@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -23,7 +22,7 @@ import java.util.concurrent.Executors;
 import javax.net.ssl.HttpsURLConnection;
 
 /**
- * API to execute Tor requests.
+ * API for Arti utility functions.
  */
 public class TorLibApi {
     static final String TAG = "ArtiLibApi";
@@ -32,7 +31,7 @@ public class TorLibApi {
 
     public static final String CONSENSUS_FILENAME = "consensus.txt";
     public static final String MICRODESCRIPTORS_FILENAME = "microdescriptors.txt";
-    public static final String AUTHORITY_FILENAME = "authority.txt";
+    public static final String AUTHORITY_FILENAME = "authority.json";
     public static final String CERTIFICATE_FILENAME = "certificate.txt";
     public static final String CHURN_FILENAME = "churn.txt";
 
@@ -41,10 +40,9 @@ public class TorLibApi {
 
     /**
      * Files to pass via the directory cache when calling
-     * {@link #asyncTorRequest(String, TorRequestMethod, String, Map, byte[], TorLibCallback)}
-     * or {@link #syncTorRequest(String, TorRequestMethod, String, Map, byte[])}.
-     * See <a href=">https://github.com/c4dt/lightarti-rest/blob/main/tools/README.md">
-     * <code>lightarti-rest</code> tools</a> for details.
+     * {@link Client#Client(String)} or {@link Client#Client(Executor, String)}.
+     * See <a href=">https://github.com/c4dt/lightarti-directory/blob/main/tools/README.md">
+     * <code>lightarti-directory</code> tools</a> for details.
      */
     public static final String[] CACHE_FILENAMES = new String[]{
             CONSENSUS_FILENAME,
@@ -53,17 +51,6 @@ public class TorLibApi {
             CERTIFICATE_FILENAME,
             CHURN_FILENAME,
     };
-
-    /**
-     * Enumeration type for an HTTP method.
-     */
-    public enum TorRequestMethod {
-        GET,
-        HEAD,
-        POST,
-        PUT,
-        DELETE,
-    }
 
     /**
      * Result of am asynchronous request, passed to the callback.
@@ -112,7 +99,7 @@ public class TorLibApi {
 
     static {
         try {
-            System.loadLibrary("core");
+            System.loadLibrary("lightarti_rest");
             Log.d(TAG, "Arti Rust library loaded");
         } catch (UnsatisfiedLinkError e) {
             Log.e(TAG, "Cannot load Arti Rust library: " + e);
@@ -123,7 +110,7 @@ public class TorLibApi {
     }
 
     /**
-     * Create a new instance of the API. The new object is then used to send requests to the library.
+     * Create a new instance of the API. The new object is then used to call utility functions.
      * The default executor used for asynchronous requests is a single thread executor.
      */
     public TorLibApi() {
@@ -131,7 +118,7 @@ public class TorLibApi {
     }
 
     /**
-     * Create a new instance of the API. The new object is then used to send requests to the library.
+     * Create a new instance of the API. The new object is then used to call utility functions.
      *
      * @param executor the executor used for asynchronous requests
      */
@@ -307,58 +294,6 @@ public class TorLibApi {
         });
     }
 
-    /**
-     * Perform an asynchronous request. The <code>cacheDir</code> argument is used in two ways:
-     * <ul>
-     *     <li>by the library for the creation of temporary files</li>
-     *     <li>to pass several files to the library (see {@link #CACHE_FILENAMES})</li>
-     * </ul>
-     * These files must be copied to the given directory before calling this method.
-     *
-     * @param cacheDir the cache directory path
-     * @param method   the HTTP method for the request
-     * @param url      the URL for the request
-     * @param headers  the headers for the request
-     * @param body     the body for the request
-     * @param callback the callback which will receive the request result
-     */
-    public void asyncTorRequest(
-            String cacheDir, TorRequestMethod method, String url, Map<String, List<String>> headers, byte[] body,
-            final TorLibCallback<HttpResponse> callback) {
-        executor.execute(() -> {
-            try {
-                HttpResponse response = syncTorRequest(cacheDir, method, url, headers, body);
-                callback.onComplete(new TorRequestResult.Success<>(response));
-            } catch (Exception e) {
-                callback.onComplete(new TorRequestResult.Error<>(e));
-            }
-        });
-    }
-
-    /**
-     * Perform a synchronous (blocking) request. The <code>cacheDir</code> argument is used in two ways:
-     * <ul>
-     *     <li>by the library for the creation of temporary files</li>
-     *     <li>to pass several files to the library (see {@link #CACHE_FILENAMES})</li>
-     * </ul>
-     * These files must be copied to the given directory before calling this method.
-     *
-     * @param cacheDir the cache directory path
-     * @param method   the HTTP method for the request
-     * @param url      the URL for the request
-     * @param headers  the headers for the request
-     * @param body     the body for the request
-     * @return the request response
-     * @throws TorLibException an error occurred during the request execution
-     */
-    public HttpResponse syncTorRequest(String cacheDir, TorRequestMethod method, String url, Map<String, List<String>> headers, byte[] body)
-            throws TorLibException {
-        if (method == null) {
-            throw new TorLibException("Invalid method: Null pointer");
-        }
-        return torRequest(cacheDir, method.name(), url, headers, body);
-    }
-
     // Native methods
 
     /**
@@ -367,7 +302,4 @@ public class TorLibApi {
     public native String hello(String who);
 
     private static native void initLogger();
-
-    private native HttpResponse torRequest(String cacheDir, String method, String url, Map<String, List<String>> headers, byte[] body)
-            throws TorLibException;
 }

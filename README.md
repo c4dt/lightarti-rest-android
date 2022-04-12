@@ -16,11 +16,11 @@ implementation of Tor, in Rust".
 ## Using the wrapper
 
 Library releases are published on
-[Maven](https://search.maven.org/search?q=artiwrapper).
+[Maven](https://search.maven.org/search?q=lightarti-rest).
 To use the library in your project, add the following to your `build.gradle`:
 
 ```
-implementation 'io.github.c4dt:artiwrapper:<version>'
+implementation 'io.github.c4dt:lightarti-rest:<version>'
 ```
 
 In the repository, you can find:
@@ -56,8 +56,8 @@ In order to publish a new release on Maven, follow these steps:
   will become available.
 - Click on "Release", again giving an optional message when prompted.
 - After some time, the release will be available in
-  [Maven](https://search.maven.org/search?q=artiwrapper), with Group ID
-  `io.github.c4dt` and Artifact ID `artiwrapper`.
+  [Maven](https://search.maven.org/search?q=lightarti-rest), with Group ID
+  `io.github.c4dt` and Artifact ID `lightarti-rest`.
 
 # Contributors
 

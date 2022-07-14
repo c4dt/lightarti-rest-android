@@ -2,12 +2,6 @@ name: Build and publish Android library
 
 on:
   push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
-    branches:
-      - main
-  pull_request:
-    branches:
 
 jobs:
   build:
@@ -29,31 +23,3 @@ jobs:
           jar tvf $( find . -name '*-release.aar' ) |
           grep '\.so$'
 
-      - name: Retrieve tag name
-        uses: actions/github-script@v3
-        id: get-tag
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          # The format for ref is `refs/tags/<tag_name>`
-          script: return context.ref.split('/')[2]
-          result-encoding: string
-
-      - name: Create tag release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          name: Release ${{ steps.get-tag.outputs.result }}
-          files: |
-            ./artiwrapper/build/outputs/aar/artiwrapper-release.aar
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish to Maven Central
-        if: startsWith(github.ref, 'refs/tags/')
-        run: ./gradlew publish
-        env:
-          ORG_GRADLE_PROJECT_nexusUsername: ${{ secrets.NEXUS_USERNAME }}
-          ORG_GRADLE_PROJECT_nexusPassword: ${{ secrets.NEXUS_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEYID }}
-          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}

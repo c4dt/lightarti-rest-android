@@ -28,6 +28,8 @@ jobs:
           ./gradlew assembleRelease &&
           jar tvf $( find . -name '*-release.aar' ) |
           grep '\.so$'
+        env:
+          NDK_VERSION: "25.0.8775105"
 
       - name: Retrieve tag name
         uses: actions/github-script@v3

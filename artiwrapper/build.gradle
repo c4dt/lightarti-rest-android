@@ -18,6 +18,8 @@ android {
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
 
+    ndkVersion System.getenv('NDK_VERSION')
+
     defaultConfig {
         minSdkVersion 23
         targetSdkVersion 30

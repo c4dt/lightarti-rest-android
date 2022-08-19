@@ -6,6 +6,8 @@ android {
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
 
+    ndkVersion System.getenv('NDK_VERSION')
+
     defaultConfig {
         applicationId "org.c4dt.myapplication"
         minSdkVersion 23

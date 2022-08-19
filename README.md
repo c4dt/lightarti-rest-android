@@ -38,11 +38,13 @@ In the repository, you can find:
 
 In order to publish a new release on Maven, follow these steps:
 
+- Go to the [rust](./rust) directory and update to the latest release tag
 - Update `VERSION_NAME` and `VERSION_CODE` in the [properties
   file](https://github.com/c4dt/lightarti-rest-android/blob/main/artiwrapper/gradle.properties).
+- Commit to `main`  
 - Tag the repository (with a tag following [semver](https://semver.org/),
   format `v[0-9]+.[0-9]+.[0-9]+)`).
-- Push the tag to the repository.
+- Push the tag to the repository (must be on the `main` branch).
 - The GitHub action will build, create a GitHub release, and publish on Maven
   **in the staging area**.
 - Log into the [Nexus Repository Manager](https://s01.oss.sonatype.org/) with

@@ -57,7 +57,7 @@ In order to publish a new release on Maven, follow these steps:
   when prompted. This will take a bit of time, after which the "Release" button
   will become available.
 - Click on "Release", again giving an optional message when prompted.
-- After some time, the release will be available in
+- After 2h-3h, the release will be available in
   [Maven](https://search.maven.org/search?q=lightarti-rest), with Group ID
   `io.github.c4dt` and Artifact ID `lightarti-rest`.
 

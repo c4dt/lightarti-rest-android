@@ -3,15 +3,15 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 33
+    buildToolsVersion "33"
 
     ndkVersion System.getenv('NDK_VERSION')
 
     defaultConfig {
         applicationId "org.c4dt.myapplication"
-        minSdkVersion 23
-        targetSdkVersion 30
+        minSdkVersion 26
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
 

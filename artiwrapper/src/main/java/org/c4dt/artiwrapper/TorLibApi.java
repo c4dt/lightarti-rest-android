@@ -13,9 +13,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -219,17 +221,6 @@ public class TorLibApi {
         }
     }
 
-    private void copyFile(InputStream is, File destFile) throws IOException {
-        byte[] buf = new byte[1024];
-
-        int nbRead;
-        try (FileOutputStream out = new FileOutputStream(destFile)) {
-            while ((nbRead = is.read(buf)) != -1) {
-                out.write(buf, 0, nbRead);
-            }
-        }
-    }
-
     /**
      * Download the churn cache file from a URL.
      *
@@ -243,10 +234,9 @@ public class TorLibApi {
             try {
                 URL url = new URL(urlString);
                 HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
-                File destDir = new File(destDirString);
 
                 try (InputStream uin = urlConnection.getInputStream()) {
-                    copyFile(uin, new File(destDir, CHURN_FILENAME));
+                    Files.copy(uin, Paths.get(destDirString, CHURN_FILENAME));
                 }
 
                 callback.onComplete(new TorRequestResult.Success<>(CacheUpdateStatus.DOWNLOADED_CHURN_FILE));
@@ -269,9 +259,9 @@ public class TorLibApi {
                                    final TorLibCallback<CacheUpdateStatus> callback) {
         executor.execute(() -> {
             try {
+                Log.d(TAG, String.format("Reading from %s", urlString));
                 URL url = new URL(urlString);
                 HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
-                File destDir = new File(destDirString);
 
                 try (InputStream uin = urlConnection.getInputStream();
                      InputStream buin = new BufferedInputStream(uin);
@@ -282,7 +272,7 @@ public class TorLibApi {
                         // Skip directories
                         if (entry.isDirectory()) continue;
 
-                        copyFile(ain, new File(destDir, entry.getName()));
+                        Files.copy(ain, Paths.get(destDirString, entry.getName()));
                         Log.d(TAG, "Extracted file: " + entry.getName());
                     }
                 }

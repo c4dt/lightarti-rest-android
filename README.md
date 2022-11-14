@@ -38,7 +38,7 @@ In the repository, you can find:
 
 In order to publish a new release on Maven, follow these steps:
 
-- Go to the [rust](./rust) directory and update to the latest release tag
+- Update the `rust` submodule: `git submodule update --remote`
 - Update `VERSION_NAME` and `VERSION_CODE` in the [properties
   file](https://github.com/c4dt/lightarti-rest-android/blob/main/artiwrapper/gradle.properties).
 - Commit to `main`  

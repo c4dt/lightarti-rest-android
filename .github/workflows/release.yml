@@ -1,0 +1,61 @@
+name: Build and publish Android library
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+    branches:
+      - main
+
+jobs:
+  build:
+    name: "Build and publish Android library"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Setup Rust toolchain
+        run: rustup show
+
+      - name: Build
+        run: >
+          ./gradlew assembleRelease &&
+          jar tvf $( find . -name '*-release.aar' ) |
+          grep '\.so$'
+        env:
+          NDK_VERSION: "25.0.8775105"
+
+      - name: Retrieve tag name
+        uses: actions/github-script@v3
+        id: get-tag
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          # The format for ref is `refs/tags/<tag_name>`
+          script: return context.ref.split('/')[2]
+          result-encoding: string
+
+      - name: Create tag release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: Release ${{ steps.get-tag.outputs.result }}
+          draft: false
+          files: |
+            ./artiwrapper/build/outputs/aar/artiwrapper-release.aar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to Maven Central
+        if: startsWith(github.ref, 'refs/tags/')
+        run: ./gradlew publish
+        env:
+          ORG_GRADLE_PROJECT_nexusUsername: ${{ secrets.NEXUS_USERNAME }}
+          ORG_GRADLE_PROJECT_nexusPassword: ${{ secrets.NEXUS_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEYID }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+          NDK_VERSION: "25.0.8775105"

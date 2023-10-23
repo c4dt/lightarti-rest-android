@@ -1,5 +1,7 @@
 package org.c4dt.artiwrapper;
 
+import android.system.Os;
+import android.system.ErrnoException;
 import android.util.Log;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -99,10 +101,13 @@ public class TorLibApi {
 
     static {
         try {
+            Os.setenv("FS_MISTRUST_DISABLE_PERMISSIONS_CHECKS", "1", true);
             System.loadLibrary("lightarti_rest");
             Log.d(TAG, "Arti Rust library loaded");
         } catch (UnsatisfiedLinkError e) {
             Log.e(TAG, "Cannot load Arti Rust library: " + e);
+        } catch (ErrnoException e) {
+            Log.d(TAG, "Cannot set 'FS_MISTRUST_DISABLE_PERMISSIONS_CHECKS' env variable");
         }
 
         TorLibApi.initLogger();

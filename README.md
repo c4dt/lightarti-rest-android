@@ -104,6 +104,7 @@ it retrieved the updated lightArti directory cache.
 - Linus Gasser, C4DT
 - Valérian Rousset, C4DT
 - Christian Grigis, C4DT
+- Carine Dengler, C4DT
 - Laurent Girod, SPRING Lab, EPFL
 
 Analysis and design by:

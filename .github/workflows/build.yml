@@ -26,8 +26,6 @@ jobs:
           ./gradlew assembleRelease &&
           jar tvf $( find . -name '*-release.aar' ) |
           grep '\.so$'
-        env:
-          NDK_VERSION: "25.0.8775105"
 
       - name: Retrieve tag name
         uses: actions/github-script@v3
@@ -58,4 +56,3 @@ jobs:
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEYID }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-          NDK_VERSION: "25.0.8775105"

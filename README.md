@@ -34,6 +34,19 @@ In the repository, you can find:
   suite](https://github.com/c4dt/lightarti-rest-android/blob/main/artiwrapper/src/androidTest/java/org/c4dt/artiwrapper/JniTest.java)
   to run on emulators and devices.
 
+### Supported versions
+
+* Android SDK 30
+* Android SDK 31
+* Android SDK 32
+* Android SDK 33
+* Android SDK 34
+
+Android NDK is pinned to version 25.2.9519653 due to missing dependencies in later
+versions, please refer to this [cargo-ndk issue](https://github.com/bbqsrc/cargo-ndk/issues/94)
+for details. Also a thank you to the [meli project](https://github.com/p2panda/meli) for proposing
+a [workaround](https://github.com/p2panda/meli/pull/21) that we integrated as well.
+
 ## Releasing on Maven
 
 In order to publish a new release on Maven, follow these steps:
@@ -61,6 +74,29 @@ In order to publish a new release on Maven, follow these steps:
   [Maven](https://search.maven.org/search?q=lightarti-rest), with Group ID
   `io.github.c4dt` and Artifact ID `lightarti-rest`.
 
+# Running the example application
+
+To run the example application locally, it is recommended that you install [Android Studio](https://developer.android.com/studio)
+following the installation instructions for your distribution/operating system.
+
+Once installed, run the Android Studio application and import this project via "Open" and selecting the project from
+your system's directory tree.
+
+Make sure to have the Android SDK/CMake installed, by going to "File" > "Settings" > "Languages & Frameworks" > "Android SDK"
+and in the tab "SDK Tools" checking for "Android SDK Build-Tools" the version you want to run (must be one of the supported
+versions), for "NDK" the version 25.2.9519653 and for "CMake" the latest available version. Click then on "Apply" to install
+these dependencies.
+
+You then need to add device(s) to run the example application on. Choose "Create Device" in the "Device Manager" menu and
+follow the instructions. You will need to install the emulators for the chosen devices which may each take up to
+10GB of disk space once installed and set up. Make sure that the devices correspond to one of the supported versions of
+the Android SDK.
+
+Android Studio should have found the ArtiWrapper example app automatically, so that you can now choose which of your devices
+to run it on from the drop-down menu left of the app in the toolbar and clicking on the green "Run" button. The project
+will be build and the emulator will be started and after a brief start-up period will show a confirmation screen that
+it retrieved the updated lightArti directory cache.
+
 # Contributors
 
 `lightarti-rest-android` is maintained by the [Center for Digital Trust](https://c4dt.org/). The following people contributed to the implementation of `lightarti-rest`:
@@ -68,6 +104,7 @@ In order to publish a new release on Maven, follow these steps:
 - Linus Gasser, C4DT
 - Valérian Rousset, C4DT
 - Christian Grigis, C4DT
+- Carine Dengler, C4DT
 - Laurent Girod, SPRING Lab, EPFL
 
 Analysis and design by:

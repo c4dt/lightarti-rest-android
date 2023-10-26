@@ -1,3 +1,8 @@
+- 2023-10-25 - v0.4.4
+    - using release v0.4.6 of lightarti-rest
+    - updated to Android SDK 34
+    - pinned Android NDK 25 (cf. https://github.com/bbqsrc/cargo-ndk/issues/94)
+    - disabled file system permission check
 - 2022-08-19 - v0.4.3
     - using release v0.4.3 of lightarti-rest
     - updating to latest gradle libraries

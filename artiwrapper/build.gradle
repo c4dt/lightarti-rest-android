@@ -15,14 +15,14 @@ def getVersionCode() {
 ext.isReleaseVersion = !getVersionName().endsWith('SNAPSHOT')
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 34
+    buildToolsVersion "34.0.0"
 
-    ndkVersion System.getenv('NDK_VERSION')
+    ndkVersion "25.2.9519653"
 
     defaultConfig {
         minSdkVersion 23
-        targetSdkVersion 30
+        targetSdkVersion 34
         versionCode getVersionName()
         versionName getVersionCode()
 

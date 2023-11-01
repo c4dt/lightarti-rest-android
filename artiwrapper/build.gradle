@@ -47,14 +47,6 @@ android {
     buildFeatures {
         viewBinding true
     }
-
-    testOptions {
-        execution 'ANDROIDX_TEST_ORCHESTRATOR'
-
-        unitTests.all {
-            useJUnitPlatform()
-        }
-    }
 }
 
 apply plugin: 'org.mozilla.rust-android-gradle.rust-android'

@@ -72,8 +72,7 @@ public class JniTest {
     @Test
     public void nullCacheDir() throws TorLibException {
         thrown.expect(TorLibException.class);
-        thrown.expectMessage(containsString("cache_dir"));
-        thrown.expectMessage(containsString("Null pointer"));
+        thrown.expectMessage(containsString("create rust string for `cache_dir_j`: Null pointer in get_string obj argument"));
 
         try (Client client = new Client(null)) {
             client.syncTorRequest(dummyMethod, dummyUrl, dummyHeaders, dummyBody);
@@ -83,7 +82,7 @@ public class JniTest {
     @Test
     public void nonexistentCacheDir() throws TorLibException {
         thrown.expect(TorLibException.class);
-        thrown.expectMessage(containsString("No such file or directory"));
+        thrown.expectMessage(containsString("directory cache does not exist"));
 
         try (Client client = new Client(dummyCacheDir)) {
             client.syncTorRequest(dummyMethod, dummyUrl, dummyHeaders, dummyBody);
@@ -93,7 +92,9 @@ public class JniTest {
     @Test
     public void missingConsensus() throws TorLibException {
         thrown.expect(TorLibException.class);
-        thrown.expectMessage(containsString("No such file or directory"));
+        thrown.expectMessage(
+            containsString("Corrupt cache: required file(s) missing in cache")
+        );
 
         File f = new File(folder.getRoot(), TorLibApi.CONSENSUS_FILENAME);
         assertTrue(f.delete());
@@ -106,7 +107,9 @@ public class JniTest {
     @Test
     public void missingMicroDescriptors() throws TorLibException {
         thrown.expect(TorLibException.class);
-        thrown.expectMessage(containsString("No such file or directory"));
+        thrown.expectMessage(
+            containsString("Corrupt cache: required file(s) missing in cache")
+        );
 
         File f = new File(folder.getRoot(), TorLibApi.MICRODESCRIPTORS_FILENAME);
         assertTrue(f.delete());
@@ -119,7 +122,9 @@ public class JniTest {
     @Test
     public void missingAuthority() throws TorLibException {
         thrown.expect(TorLibException.class);
-        thrown.expectMessage(containsString("Failed to read authority"));
+        thrown.expectMessage(
+            containsString("Corrupt cache: required file(s) missing in cache")
+        );
 
         File f = new File(folder.getRoot(), TorLibApi.AUTHORITY_FILENAME);
         assertTrue(f.delete());
@@ -132,7 +137,9 @@ public class JniTest {
     @Test
     public void missingCertificate() throws TorLibException {
         thrown.expect(TorLibException.class);
-        thrown.expectMessage(containsString("No such file or directory"));
+        thrown.expectMessage(
+            containsString("Corrupt cache: required file(s) missing in cache")
+        );
 
         File f = new File(folder.getRoot(), TorLibApi.CERTIFICATE_FILENAME);
         assertTrue(f.delete());

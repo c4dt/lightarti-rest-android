@@ -1,4 +1,11 @@
-# lightarti-rest-android
+# lightarti-rest-android - ARCHIVED
+
+This project has been archived by the [C4DT](https://c4dt.epfl.ch) Factory team.
+It is kept here for reference and for old URLs.
+You can find more information in our [showcase](https://factory.c4dt.org/showcase/lightarti/presentation)
+and find our contact information.
+
+## Description
 
 Android wrapper based on [arti](https://gitlab.torproject.org/tpo/core/arti), "An
 implementation of Tor, in Rust".
